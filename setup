@@ -1,0 +1,31 @@
+#!/bin/bash
+ 
+#Define colors
+ normal=`echo -en "\e[0m"`
+ orange=`echo -en "\e[33m"`
+ aqua=`echo -en "\e[36m"`
+ lightgreen=`echo -en "\e[92m"`
+ 
+echo "Make sure you have sudo privilages"
+rm ksau
+sudo rm /usr/local/bin/ksau
+curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
+sudo mv ksau /usr/local/bin
+chmod +x /usr/local/bin/ksau
+ 
+echo "
+${aqua}Usage : ksau <options> <params>${normal}
+
+${aqua}upload <filename> <folder to upload>${normal} : Uploads the given file to the given folder.
+${aqua}setup${normal} : Recquired while using first time.
+${aqua}update${normal} : Fetch and install latest version available.
+${aqua}dependencies${normal} : Installs recquired dependencies.
+${aqua}help${normal} : To get this message.
+${aqua}version${normal} : To get version info.
+
+Example : ${lightgreen}ksau upload test.txt Public
+
+${orange}Tool By @Ksauraj${normal}
+
+To do setup, run command  ${aqua}ksau setup${normal}
+"
