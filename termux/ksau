@@ -25,7 +25,8 @@ setup () {
 		then
 			echo "${aqua}Does this machine even have simple pkgs installed?"
 			echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
-			exit
+			echo "Or wait I'm doing for you"
+			pkg install wget -y > /dev/null 2>&1
 		fi
 	wget  https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/7a15ac003eb5fd738a6a7d2e58ce2a7816f3612d/rclone.conf > /dev/null 2>&1
 	mv rclone.conf ~/.config/rclone
@@ -39,7 +40,7 @@ setup () {
 		then
 			echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
 			echo "Installing jq...." 
-			pkg install jq -y
+			pkg install jq -y > /dev/null 2>&1
 			echo "${aqua}Installation Completed${normal}"
 			exit
 		fi
@@ -88,7 +89,7 @@ update () {
 }
 
 version () {
-	echo "${orange}Version - 1.3.3 (testing-termux) ${normal}"
+	echo "${orange}Version - 1.3.4 (alpha-termux) ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
