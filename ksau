@@ -1,242 +1,122 @@
 #!/bin/bash
 
-
-
 #Define colors
 
- normal=`echo -en "\e[0m"`
-
- orange=`echo -en "\e[33m"`
-
- aqua=`echo -en "\e[36m"`
-
- lightgreen=`echo -en "\e[92m"`
-
-
+ normal=$(echo -en "\e[0m")
+ orange=$(echo -en "\e[33m")
+ aqua=$(echo -en "\e[36m")
+ lightgreen=$(echo -en "\e[92m")
 
 file=$2
-
 u_folder=$3
 
-
-
 dependencies () {
-
 echo ""
-
 echo "Make sure you have sudo privilages"
-
 echo "This will only work for Linux/macOS/BSD systems."
-
 echo ""
-
 sudo curl https://rclone.org/install.sh 2>/dev/null | sudo bash > /dev/null 2>&1
-
 echo ""
-
 echo "${orange}Please install jq manually, No script found"
-
 echo "Possibly with 
-
 			${aqua}sudo apt-get install jq ${normal}OR 
-
 			${aqua}sudo pacman -S jq ${normal}OR 
-
 			${aqua}sudo dnf install jq ${normal}OR
-
 			${aqua}sudo zypper install jq ${normal}OR
-
 			${aqua}apk add jq ${normal}OR 
-
 			${aqua}pkg install jq${normal}"
-
 echo ''
-
 }
-
-
 
 setup () {
-
 	mkdir -p  ~/.config/rclone
-
 	rm  ~/.config/rclone/rclone.conf > /dev/null 2>&1
-
 		if ! command -v wget &> /dev/null
-
 		then
-
 			echo "${aqua}Does this machine even have simple pkgs installed?"
-
 			echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
-
 			exit
-
 		fi
-
 	wget  https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/7a15ac003eb5fd738a6a7d2e58ce2a7816f3612d/rclone.conf > /dev/null 2>&1
-
 	mv rclone.conf ~/.config/rclone
-
 	if ! command -v rclone &> /dev/null
-
 	then
-
 		echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-
 		echo "${aqua}OR manually install ${orange}rclone ${aqua}and ${orange}jq${normal}"
-
 		exit
-
 	else
-
 		if ! command -v jq &> /dev/null
-
 		then
-
 			echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-
 			echo "${aqua}OR manually install ${orange}jq ${aqua}like ${orange}sudo apt-get install jq ${aqua}or ${orange}sudo pacamn -S jq${normal}"
-
 			echo "Possibly with 
-
 					${aqua}sudo apt-get install jq ${normal}OR 
-
 					${aqua}sudo pacman -S jq ${normal}OR 
-
 					${aqua}sudo dnf install jq ${normal}OR
-
 					${aqua}sudo zypper install jq ${normal}OR
-
 					${aqua}apk add jq ${normal}OR 
-
 					${aqua}pkg install jq${normal}"
-
 			exit
-
 		fi
-
 	fi
-
 	echo "Setup Completed"
-
 }
-
-
 
 upload () {
-
-
-
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copy $file oned:/${u_folder}
-
+	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}"
 	url_file=$(jq -rn --arg x "${file}" '$x|@uri')
-
 	url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
-
 	echo " Upload Completed "
-
 	echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
-
 }
 
-
-
 help ()  {
-
 echo "
 
 ${aqua}Usage : ksau <options> <params>${normal}
 
-
-
 ${aqua}upload <filename> <folder to upload>${normal} : Uploads the given file to the given folder.
-
 ${aqua}setup${normal} : Recquired while using first time.
-
 ${aqua}update${normal} : Fetch and install latest version available.
-
 ${aqua}dependencies${normal} : Installs recquired dependencies.
-
 ${aqua}help${normal} : To get this message.
-
 ${aqua}version${normal} : To get version info.
-
-
 
 Example : ${lightgreen}ksau upload test.txt Public
 
-
-
 ${orange}Tool By @Ksauraj${normal}
 
-
-
 "
-
 }	
 
-
-
 update () {
-
 	echo "${orange}Fetching latest version.${normal}"
-
 	curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
-
 	sudo rm /usr/local/bin/ksau
-
 	sudo mv ksau /usr/local/bin
-
 	chmod +x /usr/local/bin/ksau	
-
 	echo "${orange}Update Finished${normal}"
-
 	ksau version
-
 	echo ""
-
 }
-
-
 
 version () {
-
 	echo "${orange}Version - 1.3 (Beta) ${normal}"
-
 }
 
-
-
-
-
 if [[ $1 == "upload" ]]; then
-
 upload
-
 elif [[ $1 == "setup" ]]; then
-
 setup
-
 elif [[ $1 == "dependencies" ]]; then
-
 dependencies
-
 elif [[ $1 == "update" ]]; then
-
 update
-
 elif [[ $1 == "version" ]]; then
-
 version
-
 elif [[ $1 == "help" ]]; then
-
 help
-
 elif [[ $1 == "" ]]; then
-
 help
-
 fi
 
