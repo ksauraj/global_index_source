@@ -7,8 +7,8 @@
  lightgreen=`echo -en "\e[92m"`
  
 echo "Make sure you have sudo privilages"
-rm ksau
-sudo rm /usr/local/bin/ksau
+rm ksau 2>/dev/null
+sudo rm /usr/local/bin/ksau 2>/dev/null
 curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
 sudo mv ksau /usr/local/bin
 chmod +x /usr/local/bin/ksau
