@@ -90,15 +90,15 @@ ${orange}Tool By @Ksauraj${normal}
 }	
 
 update () {
-	echo "Current " "$(ksau version)"
+	echo "${orange}Current" "$(ksau version)"
 	echo "${orange}Fetching latest version.${normal}"
 	curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
 	sudo rm /usr/local/bin/ksau
 	sudo mv ksau /usr/local/bin
 	chmod +x /usr/local/bin/ksau	
 	echo "${orange}Update Finished${normal}"
-	echo "Update to " "$(ksau version)"
-	echo ""
+	echo "${orange}Updated to" "$(ksau version)"
+	echo "${normal}"
 }
 
 version () {
