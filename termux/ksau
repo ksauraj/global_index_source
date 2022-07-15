@@ -19,6 +19,7 @@ echo ''
 }
 
 setup () {
+	mkdir -p ~/.config
 	mkdir -p  ~/.config/rclone
 	rm  ~/.config/rclone/rclone.conf > /dev/null 2>&1
 		if ! command -v wget &> /dev/null
@@ -27,6 +28,9 @@ setup () {
 			echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
 			echo "Or wait I'm doing for you"
 			pkg install wget -y > /dev/null 2>&1
+			echo "If something fails, please run 
+				${aqua}pkg upgrade -y && pkg upgrade -y${normal}
+				and run ${aqua}ksau setup${normal} again...."
 		fi
 	wget  https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/7a15ac003eb5fd738a6a7d2e58ce2a7816f3612d/rclone.conf > /dev/null 2>&1
 	mv rclone.conf ~/.config/rclone
