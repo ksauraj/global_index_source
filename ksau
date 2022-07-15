@@ -48,7 +48,7 @@ setup () {
 		if ! command -v jq &> /dev/null
 		then
 			echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-			echo "${aqua}OR manually install ${orange}jq ${aqua}like ${orange}sudo apt-get install jq ${aqua}or ${orange}sudo pacamn -S jq${normal}"
+			echo "${aqua}Please install jq manually, No script found"
 			echo "Possibly with 
 					${aqua}sudo apt-get install jq ${normal}OR 
 					${aqua}sudo pacman -S jq ${normal}OR 
@@ -90,18 +90,19 @@ ${orange}Tool By @Ksauraj${normal}
 }	
 
 update () {
+	echo "Current " "$(ksau version)"
 	echo "${orange}Fetching latest version.${normal}"
 	curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
 	sudo rm /usr/local/bin/ksau
 	sudo mv ksau /usr/local/bin
 	chmod +x /usr/local/bin/ksau	
 	echo "${orange}Update Finished${normal}"
-	ksau version
+	echo "Update to " "$(ksau version)"
 	echo ""
 }
 
 version () {
-	echo "${orange}Version - 1.3 (Beta) ${normal}"
+	echo "${orange}Version - 1.3.2 (Beta) ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
