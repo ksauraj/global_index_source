@@ -63,6 +63,7 @@ setup () {
 }
 
 upload () {
+	echo "Initializing process, might take up to 10 seconds..."
 	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}"
 	url_file=$(jq -rn --arg x "${file}" '$x|@uri')
 	url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
@@ -102,7 +103,7 @@ update () {
 }
 
 version () {
-	echo "${orange}Version - 1.3.3 (gamma) ${normal}"
+	echo "${orange}Version - 1.4.1 (Stable) ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
