@@ -8,10 +8,10 @@
 
 echo "Installing tool...." 
 rm ksau > /dev/null 2>&1
-rm  ~/bin/ksau > /dev/null 2>&1
+rm  $PREFIX/bin/ksau > /dev/null 2>&1
 curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/termux/ksau > ksau 2>/dev/null
-mv ksau ~/bin 
-chmod +x ~/bin/ksau
+mv ksau $PREFIX/bin 
+chmod +x $PREFIX/bin/ksau
  
 echo "
 ${aqua}Usage : ksau <options> <params>${normal}
