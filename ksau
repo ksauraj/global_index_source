@@ -85,7 +85,7 @@ ${aqua}version${normal} : To get version info.
 
 Example : ${lightgreen}ksau upload test.txt Public
 
-${orange}Tool By @Ksauraj${normal}
+${orange}Tool By Sauraj (@Ksauraj)${normal}
 
 "
 }	
@@ -103,7 +103,7 @@ update () {
 }
 
 version () {
-	echo "${orange}Version - 1.4.1 (Stable) ${normal}"
+	echo "${orange}Version - 1.4.2 (Stable) ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
