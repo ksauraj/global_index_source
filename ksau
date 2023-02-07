@@ -1,14 +1,23 @@
 #!/bin/bash
 
 #Define colors
+normal=$(echo -en "\e[0m")
+orange=$(echo -en "\e[33m")
+aqua=$(echo -en "\e[36m")
+lightgreen=$(echo -en "\e[92m")
+Normal='\033[0m'
+Black='\033[0;30m'  # Black
+Red='\033[0;31m'    # Red
+Green='\033[0;32m'  # Green
+Yellow='\033[0;33m' # Yellow
+Blue='\033[0;34m'   # Blue
+Purple='\033[0;35m' # Purple
+Cyan='\033[0;36m'   # Cyan
+White='\033[0;37m'  # White
 
- normal=$(echo -en "\e[0m")
- orange=$(echo -en "\e[33m")
- aqua=$(echo -en "\e[36m")
- lightgreen=$(echo -en "\e[92m")
 
-file=$2
-u_folder=$3
+readonly file="$2"
+readonly u_folder="$3"
 
 dependencies () {
 echo ""
@@ -62,6 +71,89 @@ setup () {
 	echo "Setup Completed"
 }
 
+progress_bar() {
+    if [ "$(tput cols)" -lt 84 ]; then
+        [ -z $1 ] && set -- "(Starting)" "..." "..." "..."
+        echo "${Green}${1}%  UPS: ${Cyan}2  ${Yellow}ETA: ${3}  STATUS: ${Cyan}${4}${Normal}"
+        return
+    fi
+
+    if [[ ${1} < 10 ]]; then
+        echo "${Yellow}Progress ${Green}[=>---------${Cyan}${1}%${Normal}${Green}---------<=]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 20 ]]; then
+        echo "${Yellow}Progress ${Green}[==>--------${Cyan}${1}%${Normal}${Green}--------<==]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 30 ]]; then
+        echo "${Yellow}Progress ${Green}[===>-------${Cyan}${1}%${Normal}${Green}-------<===]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 40 ]]; then
+        echo "${Yellow}Progress ${Green}[====>------${Cyan}${1}%${Normal}${Green}------<====]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 50 ]]; then
+        echo "${Yellow}Progress ${Green}[=====>-----${Cyan}${1}%${Normal}${Green}-----<=====]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 60 ]]; then
+        echo "${Yellow}Progress ${Green}[======>----${Cyan}${1}%${Normal}${Green}----<======]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 70 ]]; then
+        echo "${Yellow}Progress ${Green}[=======>---${Cyan}${1}%${Normal}${Green}---<=======]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 80 ]]; then
+        echo "${Yellow}Progress ${Green}[========>--${Cyan}${1}%${Normal}${Green}--<========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 90 ]]; then
+        echo "${Yellow}Progress ${Green}[=========>-${Cyan}${1}%${Normal}${Green}-<=========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 100 ]]; then
+        echo "${Yellow}Progress ${Green}[==========>${Cyan}${1}%${Normal}${Green}<==========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    elif [[ ${1} == 100 ]]; then
+        echo "${Yellow}Progress ${Green}[===========${Cyan}${1}%${Normal}${Green}===========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+    fi
+}
+
+rclone_progress_bar() {
+    tput civis
+    echo "Starting download..."
+    rm -f log
+    touch log
+	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}" | tee log >/dev/null || DL_FAILED=true &
+    until [ -z "$(jobs -r)" ]; do
+        if [ -n "$DL_FAILED" ]; then
+            echo
+            echo "${Red}Upload failed!${Normal}"
+            break
+        fi
+        show_bar=$(progress_bar $(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1) $(grep 'ETA' log | tail -n1 | cut -d ',' -f5) $(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //') $(grep 'ETA' log | tail -n1 | cut -d ',' -f3  | sed 's/^.*   //'))
+        echo -ne "\r$show_bar"
+        sleep 0.1
+    done #|| echo -ne "\rDownload Can't be completed, Check download link." && tput cnorm && exit 1
+    tput cnorm
+}
+end_animation() {
+    tput civis
+
+    dls=$(grep 'CN' log | tail -n1 | cut -d ' ' -f 4 | sed 's/DL://')
+    echo -ne "\r${Yellow}Progress ${Green}[======->${Cyan}Completed${Green}<-=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======/>${Cyan}COmpleted${Green}<\=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======|>${Cyan}COMpleted${Green}<|=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======\>${Cyan}COMPleted${Green}</=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======->${Cyan}COMPLeted${Green}<-=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======/>${Cyan}COMPLEted${Green}<\=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======|>${Cyan}COMPLETed${Green}<|=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======\>${Cyan}COMPLETEd${Green}</=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======->${Cyan}COMPLETED${Green}<-=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======/>${Cyan}COMPLETED${Green}<\=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo -ne "\r${Yellow}Progress ${Green}[======|>${Cyan}COMPLETED${Green}<|=====]  ${Yellow}UPS : ${dls}${Normal}"
+    sleep 0.2
+    echo
+
+    tput cnorm
+}
+
+
+
 # Below function is copied from - https://gist.github.com/jaytaylor/5a90c49e0976aadfe0726a847ce58736
 # Credit to @jkishner for https://gist.github.com/jkishner/2fccb24640a27c2d7ac9
 function url_encode() {
@@ -101,7 +193,13 @@ function url_encode() {
 
 upload () {
 	echo "Initializing process, might take up to 10 seconds..."
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}"
+  rclone_progress_bar
+  wait
+  if [ -n "$DL_FAILED" ]; then
+      echo -e "\rUpload Failed .......\n"
+      exit 1
+  fi
+  end_animation  
   u_file=$(basename "${file}")
   url_file=$(url_encode "$u_file")
 	url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
