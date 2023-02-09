@@ -15,9 +15,12 @@ Purple='\033[0;35m' # Purple
 Cyan='\033[0;36m'   # Cyan
 White='\033[0;37m'  # White
 
-
+set -o pipefail
 readonly file="$2"
 readonly u_folder="$3"
+readonly status_dir="$(mktemp -d)"
+
+trap "rm -rf $status_dir" EXIT
 
 dependencies () {
 echo ""
@@ -108,9 +111,9 @@ rclone_progress_bar() {
     echo "Starting download..."
     rm -f log
     touch log
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}" | tee log >/dev/null || DL_FAILED=true &
+	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}" | tee log >/dev/null || touch "$status_dir/failed" &
     until [ -z "$(jobs -r)" ]; do
-        if [ -n "$DL_FAILED" ]; then
+        if [ -f "$status_dir/failed" ]; then
             echo
             echo "${Red}Upload failed!${Normal}"
             break
@@ -195,7 +198,7 @@ upload () {
 	echo "Initializing process, might take up to 10 seconds..."
   rclone_progress_bar
   wait
-  if [ -n "$DL_FAILED" ]; then
+  if [ -f "$status_dir/failed" ]; then
       echo -e "\rUpload Failed .......\n"
       exit 1
   fi
