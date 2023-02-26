@@ -16,8 +16,8 @@ Cyan='\033[0;36m'   # Cyan
 White='\033[0;37m'  # White
 
 set -o pipefail
-readonly file="$2"
-readonly u_folder="$3"
+#readonly file="$2"
+#readonly u_folder="$3"
 readonly status_dir="$(mktemp -d)"
 
 trap "rm -rf $status_dir" EXIT
@@ -31,11 +31,11 @@ sudo curl https://rclone.org/install.sh 2>/dev/null | sudo bash > /dev/null 2>&1
 echo ""
 echo "${orange}Please install jq manually, No script found"
 echo "Possibly with 
-			${aqua}sudo apt-get install jq ${normal}OR 
-			${aqua}sudo pacman -S jq ${normal}OR 
+			${aqua}sudo apt-get install jq ${normal}OR
+			${aqua}sudo pacman -S jq ${normal}OR
 			${aqua}sudo dnf install jq ${normal}OR
 			${aqua}sudo zypper install jq ${normal}OR
-			${aqua}apk add jq ${normal}OR 
+			${aqua}apk add jq ${normal}OR
 			${aqua}pkg install jq${normal}"
 echo ''
 }
@@ -61,17 +61,29 @@ setup () {
 		then
 			echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
 			echo "${aqua}Please install jq manually, No script found"
-			echo "Possibly with 
-					${aqua}sudo apt-get install jq ${normal}OR 
-					${aqua}sudo pacman -S jq ${normal}OR 
+			echo "Possibly with
+					${aqua}sudo apt-get install jq ${normal}OR
+					${aqua}sudo pacman -S jq ${normal}OR
 					${aqua}sudo dnf install jq ${normal}OR
 					${aqua}sudo zypper install jq ${normal}OR
-					${aqua}apk add jq ${normal}OR 
+					${aqua}apk add jq ${normal}OR
 					${aqua}pkg install jq${normal}"
 			exit
 		fi
 	fi
 	echo "Setup Completed"
+}
+
+add_random_string() {
+  local filename="$1"
+  local extension="${filename##*.}"
+  local name="${filename%.*}"
+  local random_string="$(date +%s | sha256sum | base64 | head -c 8)"
+  if [ "$extension" == "$filename" ]; then
+  new_filename="$name-$random_string"
+  else
+  new_filename="$name-$random_string.$extension"
+  fi
 }
 
 progress_bar() {
@@ -111,7 +123,8 @@ rclone_progress_bar() {
     echo "Starting download..."
     rm -f log
     touch log
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}" | tee log >/dev/null || touch "$status_dir/failed" &
+    if [ -z "$new_filename" ]; then new_filename=$(basename "$file"); fi
+	rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" oned:/"${u_folder}"/"$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
     until [ -z "$(jobs -r)" ]; do
         if [ -f "$status_dir/failed" ]; then
             echo
@@ -203,9 +216,8 @@ upload () {
       exit 1
   fi
   end_animation  
-  u_file=$(basename "${file}")
-  url_file=$(url_encode "$u_file")
-	url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
+  url_file=$(url_encode "${new_filename}")
+	url_folder=$(jq -rn --arg x "${u_folder%/}" '$x|@uri')
 	echo " Upload Completed "
 	echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
 }
@@ -242,22 +254,35 @@ update () {
 }
 
 version () {
-	echo "${orange}Version - 1.4.2 (Stable) ${normal}"
+	echo "${orange}Version - 1.5 (Stable) ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
-upload
+    if [[ $2 == "-r" ]]; then
+        shift
+        readonly file="$2"
+        readonly u_folder="$3"
+        add_random_string $(basename "$file")
+        upload
+    else
+        readonly file="$2"
+        readonly u_folder="$3"
+        upload
+    fi
 elif [[ $1 == "setup" ]]; then
-setup
+    setup
 elif [[ $1 == "dependencies" ]]; then
-dependencies
+    dependencies
 elif [[ $1 == "update" ]]; then
-update
+    update
 elif [[ $1 == "version" ]]; then
-version
+    version
 elif [[ $1 == "help" ]]; then
-help
+    help
 elif [[ $1 == "" ]]; then
-help
+    help
+else
+    echo "Unknown Argument passed."
+    help
 fi
 
