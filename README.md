@@ -31,7 +31,7 @@ ksau dependencies
 
 ### To upload
 ```
-ksau upload <filename> <folder to upload>
+ksau upload [FILE] [FOLDER] # Uploads the given file to the given folder on index.
 #Example - ksau upload test.txt Public
 ```
 
@@ -46,12 +46,27 @@ ksau version
 ```
 ## Usage
 ```
-upload <filename> <folder to upload>${normal} : Uploads the given file to the given folder.
-setup : Recquired while using first time.
-update : Fetch and install latest version available.
-dependencies : Installs recquired dependencies.
-help : To get this message.
-version: To get version info.
+Usage : ksau [OPTION]... [FILE]...
+
+upload [FILE] [FOLDER]    : Uploads the given file to the given folder
+                            on index.
+
+upload -r [FILE] [FOLDER] : Uploads the given file to the given folder
+                            but with new filename with random strings
+                            at last (before extension if present).
+
+setup                     : Recquired while using first time.
+
+update                    : Fetch and install latest version available.
+
+dependencies              : Installs recquired dependencies.
+
+help                      : To get this message.
+
+version                   : To get version info.
+
+Example : ksau upload test.txt Public
+
 ```
 
 ### Abuse alert
@@ -59,6 +74,6 @@ Please don't abuse, we have limited storage.
 Also I'm sharing my configs just for community use and I get nothing from it.
 
 ### Create Your Own
-Just change your `rclone config` and `index link` in `ksau` (L40 & L71).
+Just change your `rclone config` and `index link` in `ksau`.
 
 ### Tool By @Ksauraj (@noobyysauraj)
