@@ -1,23 +1,22 @@
 #!/bin/bash
- 
+
 #Define colors
- normal=`echo -en "\e[0m"`
- orange=`echo -en "\e[33m"`
- aqua=`echo -en "\e[36m"`
- lightgreen=`echo -en "\e[92m"`
- 
+normal=$(echo -en "\e[0m")
+orange=$(echo -en "\e[33m")
+aqua=$(echo -en "\e[36m")
+lightgreen=$(echo -en "\e[92m")
+
 echo "Make sure you have sudo privilages"
-rm ksau > /dev/null 2>&1
-sudo rm /usr/local/bin/ksau > /dev/null 2>&1
-curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
+rm ksau >/dev/null 2>&1
+sudo rm /usr/local/bin/ksau >/dev/null 2>&1
+curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau >ksau 2>/dev/null
 sudo mv ksau /usr/local/bin
 chmod +x /usr/local/bin/ksau
- 
-		if ! command -v ksau &> /dev/null
-		then
-			echo "${orange}Installation Failed !!!"
-			echo "Posssible Solution : Don't run as root or check Root version.${normal}"
-			exit
-		else
-			ksau 
-		fi
+
+if ! command -v ksau &>/dev/null; then
+    echo "${orange}Installation Failed !!!"
+    echo "Posssible Solution : Don't run as root or check Root version.${normal}"
+    exit
+else
+    ksau
+fi

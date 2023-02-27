@@ -22,61 +22,58 @@ readonly u_folder="$3"
 readonly status_dir="$(mktemp -d)"
 trap "rm -rf $status_dir" EXIT
 
-dependencies () {
-echo "Starting Installation...."
-pkg install rclone jq -y > /dev/null 2>&1
-echo ""
-echo "${orange}Installation Completed. ${normal}"
+dependencies() {
+    echo "Starting Installation...."
+    pkg install rclone jq -y >/dev/null 2>&1
+    echo ""
+    echo "${orange}Installation Completed. ${normal}"
 }
 
-setup () {
-	mkdir -p ~/.config
-	mkdir -p  ~/.config/rclone
-	rm  ~/.config/rclone/rclone.conf > /dev/null 2>&1
-		if ! command -v wget &> /dev/null
-		then
-			echo "${aqua}Does this machine even have simple pkgs installed?"
-			echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
-			echo "Or wait I'm doing for you"
-			pkg install wget -y > /dev/null 2>&1
-			echo "If something fails, please run"
-			echo "${aqua}pkg upgrade -y && pkg upgrade -y${normal}"
-			echo "and run ${aqua}ksau setup${normal} again...."
-		fi
-	wget  https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf > /dev/null 2>&1
-	mv rclone.conf ~/.config/rclone
-	if ! command -v rclone &> /dev/null
-	then
-		echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-		echo "${aqua}OR manually install ${orange}rclone ${aqua}and ${orange}jq${normal}"
-		echo "Or wait I'm doing for you"
-		echo "Running command ${aqua}ksau dependencies${normal}"
-		ksau dependencies
-		echo ""
-	else
-		if ! command -v jq &> /dev/null
-		then
-			echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-			echo "Installing jq...." 
-			pkg install jq -y > /dev/null 2>&1
-			echo "${aqua}Installation Completed. ${normal}"
-			exit
-		fi
-	fi
-	echo "Setup Completed"
+setup() {
+    mkdir -p ~/.config
+    mkdir -p ~/.config/rclone
+    rm ~/.config/rclone/rclone.conf >/dev/null 2>&1
+    if ! command -v wget &>/dev/null; then
+        echo "${aqua}Does this machine even have simple pkgs installed?"
+        echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
+        echo "Or wait I'm doing for you"
+        pkg install wget -y >/dev/null 2>&1
+        echo "If something fails, please run"
+        echo "${aqua}pkg upgrade -y && pkg upgrade -y${normal}"
+        echo "and run ${aqua}ksau setup${normal} again...."
+    fi
+    wget https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf >/dev/null 2>&1
+    mv rclone.conf ~/.config/rclone
+    if ! command -v rclone &>/dev/null; then
+        echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
+        echo "${aqua}OR manually install ${orange}rclone ${aqua}and ${orange}jq${normal}"
+        echo "Or wait I'm doing for you"
+        echo "Running command ${aqua}ksau dependencies${normal}"
+        ksau dependencies
+        echo ""
+    else
+        if ! command -v jq &>/dev/null; then
+            echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
+            echo "Installing jq...."
+            pkg install jq -y >/dev/null 2>&1
+            echo "${aqua}Installation Completed. ${normal}"
+            exit
+        fi
+    fi
+    echo "Setup Completed"
 }
 
-upload () {
-	echo "Initializing process, might take up to 10 seconds..."
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}"
-	url_file=$(jq -rn --arg x "${file}" '$x|@uri')
-	url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
-	echo " Upload Completed "
-	echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+upload() {
+    echo "Initializing process, might take up to 10 seconds..."
+    rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}"
+    url_file=$(jq -rn --arg x "${file}" '$x|@uri')
+    url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
+    echo " Upload Completed "
+    echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
 }
 
-help ()  {
-echo "
+help() {
+    echo "
 
 ${aqua}Usage : ksau <options> <params>${normal}
 
@@ -101,17 +98,28 @@ progress_bar() {
         return
     fi
 
-    if [[ ${1} < 10 ]]; then echo "${Yellow}Progress ${Green}[=>---------${Cyan}${1}%${Normal}${Green}---------<=] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 20 ]]; then echo "${Yellow}Progress ${Green}[==>--------${Cyan}${1}%${Normal}${Green}--------<==] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 30 ]]; then echo "${Yellow}Progress ${Green}[===>-------${Cyan}${1}%${Normal}${Green}-------<===] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 40 ]]; then echo "${Yellow}Progress ${Green}[====>------${Cyan}${1}%${Normal}${Green}------<====] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 50 ]]; then echo "${Yellow}Progress ${Green}[=====>-----${Cyan}${1}%${Normal}${Green}-----<=====] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 60 ]]; then echo "${Yellow}Progress ${Green}[======>----${Cyan}${1}%${Normal}${Green}----<======] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 70 ]]; then echo "${Yellow}Progress ${Green}[=======>---${Cyan}${1}%${Normal}${Green}---<=======] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 80 ]]; then echo "${Yellow}Progress ${Green}[========>--${Cyan}${1}%${Normal}${Green}--<========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 90 ]]; then echo "${Yellow}Progress ${Green}[=========>-${Cyan}${1}%${Normal}${Green}-<=========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} -lt 100 ]]; then echo "${Yellow}Progress ${Green}[==========>${Cyan}${1}%${Normal}${Green}<==========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
-    elif [[ ${1} == 100 ]]; then echo "${Yellow}Progress ${Green}[===========${Cyan}${1}%${Normal}${Green}===========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    if [[ ${1} < 10 ]]; then
+        echo "${Yellow}Progress ${Green}[=>---------${Cyan}${1}%${Normal}${Green}---------<=] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 20 ]]; then
+        echo "${Yellow}Progress ${Green}[==>--------${Cyan}${1}%${Normal}${Green}--------<==] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 30 ]]; then
+        echo "${Yellow}Progress ${Green}[===>-------${Cyan}${1}%${Normal}${Green}-------<===] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 40 ]]; then
+        echo "${Yellow}Progress ${Green}[====>------${Cyan}${1}%${Normal}${Green}------<====] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 50 ]]; then
+        echo "${Yellow}Progress ${Green}[=====>-----${Cyan}${1}%${Normal}${Green}-----<=====] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 60 ]]; then
+        echo "${Yellow}Progress ${Green}[======>----${Cyan}${1}%${Normal}${Green}----<======] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 70 ]]; then
+        echo "${Yellow}Progress ${Green}[=======>---${Cyan}${1}%${Normal}${Green}---<=======] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 80 ]]; then
+        echo "${Yellow}Progress ${Green}[========>--${Cyan}${1}%${Normal}${Green}--<========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 90 ]]; then
+        echo "${Yellow}Progress ${Green}[=========>-${Cyan}${1}%${Normal}${Green}-<=========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} -lt 100 ]]; then
+        echo "${Yellow}Progress ${Green}[==========>${Cyan}${1}%${Normal}${Green}<==========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
+    elif [[ ${1} == 100 ]]; then
+        echo "${Yellow}Progress ${Green}[===========${Cyan}${1}%${Normal}${Green}===========] ${Yellow}Speed:${Cyan}${2} ${Yellow}ETA:${Cyan}${3} ${Yellow}Status:${Cyan}${4}${Normal}"
     fi
 }
 
@@ -120,14 +128,14 @@ rclone_progress_bar() {
     echo "Starting Upload..."
     rm -f log
     touch log
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}" | tee log >/dev/null || touch "$status_dir/failed" &
+    rclone -P --checkers=32 --onedrive-chunk-size 60M copy "$file" oned:/"${u_folder}" | tee log >/dev/null || touch "$status_dir/failed" &
     until [ -z "$(jobs -r)" ]; do
         if [ -f "$status_dir/failed" ]; then
             echo
             echo "${Red}Upload failed!${Normal}"
             break
         fi
-        show_bar=$(progress_bar "$(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1)" "$(grep 'ETA' log | tail -n1 | cut -d ',' -f5  | sed 's/^ *//g' | sed 's/ $//g')" "$(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //' | sed 's/^ *//g' | sed 's/ $//g')" "$(grep 'ETA' log | tail -n1 | cut -d ',' -f3  | sed 's/^.*   //' | sed 's/^ *//g' | sed 's/ $//g')")
+        show_bar=$(progress_bar "$(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1)" "$(grep 'ETA' log | tail -n1 | cut -d ',' -f5 | sed 's/^ *//g' | sed 's/ $//g')" "$(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //' | sed 's/^ *//g' | sed 's/ $//g')" "$(grep 'ETA' log | tail -n1 | cut -d ',' -f3 | sed 's/^.*   //' | sed 's/^ *//g' | sed 's/ $//g')")
         echo -ne "\r$show_bar"
         sleep 0.1
     done #|| echo -ne "\rDownload Can't be completed, Check download link." && tput cnorm && exit 1
@@ -153,78 +161,75 @@ end_animation() {
     tput cnorm
 }
 
-
-
 # Below function is copied from - https://gist.github.com/jaytaylor/5a90c49e0976aadfe0726a847ce58736
 # Credit to @jkishner for https://gist.github.com/jkishner/2fccb24640a27c2d7ac9
 function url_encode() {
-    echo "$@" \
-    | sed \
-        -e 's/%/%25/g' \
-        -e 's/ /%20/g' \
-        -e 's/!/%21/g' \
-        -e 's/"/%22/g' \
-        -e "s/'/%27/g" \
-        -e 's/#/%23/g' \
-        -e 's/(/%28/g' \
-        -e 's/)/%29/g' \
-        -e 's/+/%2b/g' \
-        -e 's/,/%2c/g' \
-        -e 's/-/%2d/g' \
-        -e 's/:/%3a/g' \
-        -e 's/;/%3b/g' \
-        -e 's/?/%3f/g' \
-        -e 's/@/%40/g' \
-        -e 's/\$/%24/g' \
-        -e 's/\&/%26/g' \
-        -e 's/\*/%2a/g' \
-        -e 's/\./%2e/g' \
-        -e 's/\//%2f/g' \
-        -e 's/\[/%5b/g' \
-        -e 's/\\/%5c/g' \
-        -e 's/\]/%5d/g' \
-        -e 's/\^/%5e/g' \
-        -e 's/_/%5f/g' \
-        -e 's/`/%60/g' \
-        -e 's/{/%7b/g' \
-        -e 's/|/%7c/g' \
-        -e 's/}/%7d/g' \
-        -e 's/~/%7e/g'
+    echo "$@" |
+        sed \
+            -e 's/%/%25/g' \
+            -e 's/ /%20/g' \
+            -e 's/!/%21/g' \
+            -e 's/"/%22/g' \
+            -e "s/'/%27/g" \
+            -e 's/#/%23/g' \
+            -e 's/(/%28/g' \
+            -e 's/)/%29/g' \
+            -e 's/+/%2b/g' \
+            -e 's/,/%2c/g' \
+            -e 's/-/%2d/g' \
+            -e 's/:/%3a/g' \
+            -e 's/;/%3b/g' \
+            -e 's/?/%3f/g' \
+            -e 's/@/%40/g' \
+            -e 's/\$/%24/g' \
+            -e 's/\&/%26/g' \
+            -e 's/\*/%2a/g' \
+            -e 's/\./%2e/g' \
+            -e 's/\//%2f/g' \
+            -e 's/\[/%5b/g' \
+            -e 's/\\/%5c/g' \
+            -e 's/\]/%5d/g' \
+            -e 's/\^/%5e/g' \
+            -e 's/_/%5f/g' \
+            -e 's/`/%60/g' \
+            -e 's/{/%7b/g' \
+            -e 's/|/%7c/g' \
+            -e 's/}/%7d/g' \
+            -e 's/~/%7e/g'
 }
 
-upload () {
-	echo "Initializing process, might take up to 10 seconds..."
-  rclone_progress_bar
-  wait
-  if [ -f "$status_dir/failed" ]; then
-      echo -e "\rUpload Failed .......\n"
-      exit 1
-  fi
-  end_animation
-  u_file=$(basename "${file}")
-  url_file=$(url_encode "$u_file")
-	url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
-	echo " Upload Completed "
-	echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+upload() {
+    echo "Initializing process, might take up to 10 seconds..."
+    rclone_progress_bar
+    wait
+    if [ -f "$status_dir/failed" ]; then
+        echo -e "\rUpload Failed .......\n"
+        exit 1
+    fi
+    end_animation
+    u_file=$(basename "${file}")
+    url_file=$(url_encode "$u_file")
+    url_folder=$(jq -rn --arg x "${u_folder}" '$x|@uri')
+    echo " Upload Completed "
+    echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
 }
 
-version () {
-	echo "${orange}Version - 1.4.2 (Alpha-termux) ${normal}"
+version() {
+    echo "${orange}Version - 1.4.2 (Alpha-termux) ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
-upload
+    upload
 elif [[ $1 == "setup" ]]; then
-setup
+    setup
 elif [[ $1 == "dependencies" ]]; then
-dependencies
+    dependencies
 elif [[ $1 == "update" ]]; then
-update
+    update
 elif [[ $1 == "version" ]]; then
-version
+    version
 elif [[ $1 == "help" ]]; then
-help
+    help
 elif [[ $1 == "" ]]; then
-help
+    help
 fi
-
