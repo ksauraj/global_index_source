@@ -4,7 +4,31 @@ ksau
 
 ## Overview
 A simple tool written in bash to use my index for uploading files.
-Might be alternative to `bash-upload`, `we-transfer`, `transfer.sh`. 
+Might be alternative to `bash-upload`, `we-transfer`, `transfer.sh`.
+
+## Contributing
+If you want to contribute, please make sure you have `shfmt` installed, and run
+`make lint` before commiting. This ensures tabs and spaces does not get mixed,
+as well as consistent styling.
+
+```bash
+# For example, shfmt will ensure:
+if condition
+then
+    do_stuff
+else
+    do_stuff
+fi
+
+# is always written as:
+if condition; then
+    do_stuff
+else
+    do_stuff
+fi
+
+# The same applies to loops and switch statements (case;esac)
+```
 
 ## How to get started 
 ### For Linux/macOS/BSD systems.
