@@ -21,6 +21,14 @@ readonly status_dir="$(mktemp -d)"
 trap "rm -rf $status_dir" EXIT
 
 dependencies() {
+    if declare -p TERMUX_VERSION &>/dev/null; then
+        echo "Starting Installation...."
+        pkg install rclone jq -y >/dev/null 2>&1
+        echo ""
+        echo "${orange}Installation Completed. ${normal}"
+        return
+    fi
+
     echo ""
     echo "Make sure you have sudo privilages"
     echo "This will only work for Linux/macOS/BSD systems."

@@ -18,7 +18,7 @@ curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/maste
 
 ### For Termux user.
 ```
-curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/termux/setup | bash
+curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/setup | bash
 ```
 ### Once tool is installed, run setup.
 ```
