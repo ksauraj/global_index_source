@@ -1,5 +1,9 @@
 #!/bin/bash
 
+readonly KSAU_VERSION=151
+readonly KSAU_RELEASE_TYPE=stable
+readonly KSAU_VERSION_STRING="Version 1.5.1 (Stable)"
+
 #Define colors
 normal=$(echo -en "\e[0m")
 orange=$(echo -en "\e[33m")
@@ -274,7 +278,7 @@ update() {
 }
 
 version() {
-    echo "${orange}Version - 1.5.1 (Stable) ${normal}"
+    echo "${orange}${KSAU_VERSION_STRING} ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
