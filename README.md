@@ -11,6 +11,14 @@ If you want to contribute, please make sure you have `shfmt` installed, and run
 `make lint` before commiting. This ensures tabs and spaces does not get mixed,
 as well as consistent styling.
 
+Alternatively, you can use our provided hook to run `make lint` automatically
+before git commits your changes.
+
+To install the hook:
+```bash
+make install-hook
+```
+
 ```bash
 # For example, shfmt will ensure:
 if condition
