@@ -265,16 +265,37 @@ ${orange}Tool By Sauraj (@Ksauraj)${normal}
 "
 }
 
+_update_copy() {
+    local file=$1
+    if declare -p TERMUX_VERSION &>/dev/null; then
+        cp "$file" "$PREFIX/bin"
+    else
+        sudo cp "$file" /usr/local/bin
+    fi
+}
+
 update() {
-    echo "${orange}Current" "$(ksau version)"
-    echo "${orange}Fetching latest version.${normal}"
-    curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau >ksau 2>/dev/null
-    sudo rm /usr/local/bin/ksau
-    sudo mv ksau /usr/local/bin
-    chmod +x /usr/local/bin/ksau
-    echo "${orange}Update Finished${normal}"
-    echo "${orange}Updated to" "$(ksau version)"
-    echo "${normal}"
+    if ! ping -c2 google.com &>/dev/null; then
+        echo "Please check your internet connection"
+        return
+    fi
+
+    local tmpfilename new_version new_version_string
+    tmpfilename=ksau-$RANDOM
+
+    echo "Fetching"
+    curl --progress-bar -Lo "$tmpfilename" https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau
+
+    new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | cut -d= -f2)
+    new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | cut -d= -f2)
+    if [ "$new_version" -gt "$KSAU_VERSION" ]; then
+        echo "New version found $Cyan($KSAU_VERSION_STRING -> $new_version_string)$Normal"
+        _update_copy "$tmpfilename"
+    else
+        echo "Already on latest release."
+    fi
+
+    rm -f "$tmpfilename"
 }
 
 version() {
