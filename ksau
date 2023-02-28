@@ -288,7 +288,7 @@ update() {
 
     new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | cut -d= -f2)
     new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | cut -d= -f2)
-    if [ "$new_version" -gt "$KSAU_VERSION" ]; then
+    if [[ $new_version -gt $KSAU_VERSION ]]; then
         echo "New version found $Cyan($KSAU_VERSION_STRING -> $new_version_string)$Normal"
         _update_copy "$tmpfilename"
     else
