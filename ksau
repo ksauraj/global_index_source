@@ -268,10 +268,13 @@ ${orange}Tool By Sauraj (@Ksauraj)${normal}
 _update_copy() {
     local file=$1
     if declare -p TERMUX_VERSION &>/dev/null; then
-        cp "$file" "$PREFIX/bin"
+        cp -f "$file" "$PREFIX/bin/ksau"
+        chmod +x "$PREFIX/bin/ksau"
     else
-        sudo cp "$file" /usr/local/bin
+        sudo cp -f "$file" /usr/local/bin/ksau
+        chmod +x "/usr/local/bin/ksau"
     fi
+    echo "Updated ksau copied."
 }
 
 update() {
@@ -289,7 +292,7 @@ update() {
     new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | head -n1 | cut -d= -f2)
     new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | head -n1 | cut -d= -f2)
     if [[ $new_version -gt $KSAU_VERSION ]]; then
-        echo "New version found $Cyan($KSAU_VERSION_STRING -> $new_version_string)$Normal"
+        echo -e "New version found $Cyan($KSAU_VERSION_STRING -> $new_version_string)$Normal"
         _update_copy "$tmpfilename"
     else
         echo "Already on latest release."
