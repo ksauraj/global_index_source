@@ -1,5 +1,9 @@
 #!/bin/bash
 
+readonly KSAU_VERSION=151
+readonly KSAU_RELEASE_TYPE=stable
+readonly KSAU_VERSION_STRING="Version 1.5.1 (Stable)"
+
 #Define colors
 normal=$(echo -en "\e[0m")
 orange=$(echo -en "\e[33m")
@@ -20,71 +24,77 @@ readonly status_dir="$(mktemp -d)"
 
 trap "rm -rf $status_dir" EXIT
 
-dependencies () {
-echo ""
-echo "Make sure you have sudo privilages"
-echo "This will only work for Linux/macOS/BSD systems."
-echo ""
-sudo curl https://rclone.org/install.sh 2>/dev/null | sudo bash > /dev/null 2>&1
-echo ""
-echo "${orange}Please install jq manually, No script found"
-echo "Possibly with 
+dependencies() {
+    if declare -p TERMUX_VERSION &>/dev/null; then
+        echo "Starting Installation...."
+        pkg update >/dev/null 2>&1
+        pkg install rclone jq -y >/dev/null 2>&1
+        echo ""
+        echo "${orange}Installation Completed. ${normal}"
+        return
+    fi
+
+    echo ""
+    echo "Make sure you have sudo privilages"
+    echo "This will only work for Linux/macOS/BSD systems."
+    echo ""
+    sudo curl https://rclone.org/install.sh 2>/dev/null | sudo bash >/dev/null 2>&1
+    echo ""
+    echo "${orange}Please install jq manually, No script found"
+    echo "Possibly with 
 			${aqua}sudo apt-get install jq ${normal}OR
 			${aqua}sudo pacman -S jq ${normal}OR
 			${aqua}sudo dnf install jq ${normal}OR
 			${aqua}sudo zypper install jq ${normal}OR
 			${aqua}apk add jq ${normal}OR
 			${aqua}pkg install jq${normal}"
-echo ''
+    echo ''
 }
 
-setup () {
-	mkdir -p  ~/.config/rclone
-	rm  ~/.config/rclone/rclone.conf > /dev/null 2>&1
-		if ! command -v wget &> /dev/null
-		then
-			echo "${aqua}Does this machine even have simple pkgs installed?"
-			echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
-			exit
-		fi
-	wget  https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf > /dev/null 2>&1
-	mv rclone.conf ~/.config/rclone
-	if ! command -v rclone &> /dev/null
-	then
-		echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-		echo "${aqua}OR manually install ${orange}rclone ${aqua}and ${orange}jq${normal}"
-		exit
-	else
-		if ! command -v jq &> /dev/null
-		then
-			echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-			echo "${aqua}Please install jq manually, No script found"
-			echo "Possibly with
+setup() {
+    mkdir -p ~/.config/rclone
+    rm ~/.config/rclone/rclone.conf >/dev/null 2>&1
+    if ! command -v wget &>/dev/null; then
+        echo "${aqua}Does this machine even have simple pkgs installed?"
+        echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
+        exit
+    fi
+    wget https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf >/dev/null 2>&1
+    mv rclone.conf ~/.config/rclone
+    if ! command -v rclone &>/dev/null; then
+        echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
+        echo "${aqua}OR manually install ${orange}rclone ${aqua}and ${orange}jq${normal}"
+        exit
+    else
+        if ! command -v jq &>/dev/null; then
+            echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
+            echo "${aqua}Please install jq manually, No script found"
+            echo "Possibly with
 					${aqua}sudo apt-get install jq ${normal}OR
 					${aqua}sudo pacman -S jq ${normal}OR
 					${aqua}sudo dnf install jq ${normal}OR
 					${aqua}sudo zypper install jq ${normal}OR
 					${aqua}apk add jq ${normal}OR
 					${aqua}pkg install jq${normal}"
-			exit
-		fi
-	fi
-	echo "Setup Completed"
+            exit
+        fi
+    fi
+    echo "Setup Completed"
 }
 
 # Generates new filename with random strings at last (before extension if present).
 # new name for 'myfile.txt' -> 'myfile-78e11b8c.txt'
 # new name for 'myfile' -> 'myfile-78e11b8c'
 add_random_string() {
-  local filename="$1"
-  local extension="${filename##*.}"
-  local name="${filename%.*}"
-  local random_string="$(date +%s | sha256sum | base64 | head -c 8)"
-  if [ -z "$extension" ]; then
-    new_filename="$name-$random_string"
-  else
-    new_filename="$name-$random_string.$extension"
-  fi
+    local filename="$1"
+    local extension="${filename##*.}"
+    local name="${filename%.*}"
+    local random_string="$(date +%s | sha256sum | base64 | head -c 8)"
+    if [ -z "$extension" ]; then
+        new_filename="$name-$random_string"
+    else
+        new_filename="$name-$random_string.$extension"
+    fi
 }
 
 # Simple progressbar animation.
@@ -128,14 +138,14 @@ rclone_progress_bar() {
     rm -f log
     touch log
     if [ -z "$new_filename" ]; then new_filename=$(basename "$file"); fi
-	rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" oned:/"${u_folder}"/"$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+    rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" oned:/"${u_folder}"/"$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
     until [ -z "$(jobs -r)" ]; do
         if [ -f "$status_dir/failed" ]; then
             echo
             echo "${Red}Upload failed!${Normal}"
             break
         fi
-        show_bar=$(progress_bar $(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1) $(grep 'ETA' log | tail -n1 | cut -d ',' -f5) $(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //') $(grep 'ETA' log | tail -n1 | cut -d ',' -f3  | sed 's/^.*   //'))
+        show_bar=$(progress_bar $(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1) $(grep 'ETA' log | tail -n1 | cut -d ',' -f5) $(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //') $(grep 'ETA' log | tail -n1 | cut -d ',' -f3 | sed 's/^.*   //'))
         echo -ne "\r$show_bar"
         sleep 0.1
     done #|| echo -ne "\rDownload Can't be completed, Check download link." && tput cnorm && exit 1
@@ -174,63 +184,61 @@ end_animation() {
     tput cnorm
 }
 
-
-
 # Below function is copied from - https://gist.github.com/jaytaylor/5a90c49e0976aadfe0726a847ce58736
 # Credit to @jkishner for https://gist.github.com/jkishner/2fccb24640a27c2d7ac9
 function url_encode() {
-    echo "$@" \
-    | sed \
-        -e 's/%/%25/g' \
-        -e 's/ /%20/g' \
-        -e 's/!/%21/g' \
-        -e 's/"/%22/g' \
-        -e "s/'/%27/g" \
-        -e 's/#/%23/g' \
-        -e 's/(/%28/g' \
-        -e 's/)/%29/g' \
-        -e 's/+/%2b/g' \
-        -e 's/,/%2c/g' \
-        -e 's/-/%2d/g' \
-        -e 's/:/%3a/g' \
-        -e 's/;/%3b/g' \
-        -e 's/?/%3f/g' \
-        -e 's/@/%40/g' \
-        -e 's/\$/%24/g' \
-        -e 's/\&/%26/g' \
-        -e 's/\*/%2a/g' \
-        -e 's/\./%2e/g' \
-        -e 's/\//%2f/g' \
-        -e 's/\[/%5b/g' \
-        -e 's/\\/%5c/g' \
-        -e 's/\]/%5d/g' \
-        -e 's/\^/%5e/g' \
-        -e 's/_/%5f/g' \
-        -e 's/`/%60/g' \
-        -e 's/{/%7b/g' \
-        -e 's/|/%7c/g' \
-        -e 's/}/%7d/g' \
-        -e 's/~/%7e/g'
+    echo "$@" |
+        sed \
+            -e 's/%/%25/g' \
+            -e 's/ /%20/g' \
+            -e 's/!/%21/g' \
+            -e 's/"/%22/g' \
+            -e "s/'/%27/g" \
+            -e 's/#/%23/g' \
+            -e 's/(/%28/g' \
+            -e 's/)/%29/g' \
+            -e 's/+/%2b/g' \
+            -e 's/,/%2c/g' \
+            -e 's/-/%2d/g' \
+            -e 's/:/%3a/g' \
+            -e 's/;/%3b/g' \
+            -e 's/?/%3f/g' \
+            -e 's/@/%40/g' \
+            -e 's/\$/%24/g' \
+            -e 's/\&/%26/g' \
+            -e 's/\*/%2a/g' \
+            -e 's/\./%2e/g' \
+            -e 's/\//%2f/g' \
+            -e 's/\[/%5b/g' \
+            -e 's/\\/%5c/g' \
+            -e 's/\]/%5d/g' \
+            -e 's/\^/%5e/g' \
+            -e 's/_/%5f/g' \
+            -e 's/`/%60/g' \
+            -e 's/{/%7b/g' \
+            -e 's/|/%7c/g' \
+            -e 's/}/%7d/g' \
+            -e 's/~/%7e/g'
 }
 
 # rclone_progress_bar -> progress_bar -> end_animation -> Print dowload link.
-upload () {
-	echo "Initializing process, might take up to 10 seconds..."
-  rclone_progress_bar
-  wait
-  if [ -f "$status_dir/failed" ]; then
-      echo -e "\rUpload Failed .......\n"
-      exit 1
-  fi
-  end_animation  
-  url_file=$(url_encode "${new_filename}")
-	url_folder=$(jq -rn --arg x "${u_folder%/}" '$x|@uri')
-	echo " Upload Completed "
-	echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+upload() {
+    echo "Initializing process, might take up to 10 seconds..."
+    rclone_progress_bar
+    wait
+    if [ -f "$status_dir/failed" ]; then
+        echo -e "\rUpload Failed .......\n"
+        exit 1
+    fi
+    end_animation
+    url_file=$(url_encode "${new_filename}")
+    url_folder=$(jq -rn --arg x "${u_folder%/}" '$x|@uri')
+    echo " Upload Completed "
+    echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
 }
 
-help ()  {
-echo "
+help() {
+    echo "
 ${aqua}Usage : ksau [OPTION]... [FILE]...${normal}
 
 ${aqua}upload [FILE] [FOLDER]${normal}    : Uploads the given file to the given folder
@@ -255,22 +263,43 @@ Example : ${lightgreen}ksau upload test.txt Public
 
 ${orange}Tool By Sauraj (@Ksauraj)${normal}
 "
-}	
-
-update () {
-	echo "${orange}Current" "$(ksau version)"
-	echo "${orange}Fetching latest version.${normal}"
-	curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau > ksau 2>/dev/null
-	sudo rm /usr/local/bin/ksau
-	sudo mv ksau /usr/local/bin
-	chmod +x /usr/local/bin/ksau	
-	echo "${orange}Update Finished${normal}"
-	echo "${orange}Updated to" "$(ksau version)"
-	echo "${normal}"
 }
 
-version () {
-	echo "${orange}Version - 1.5.1 (Stable) ${normal}"
+_update_copy() {
+    local file=$1
+    if declare -p TERMUX_VERSION &>/dev/null; then
+        cp "$file" "$PREFIX/bin"
+    else
+        sudo cp "$file" /usr/local/bin
+    fi
+}
+
+update() {
+    if ! ping -c2 google.com &>/dev/null; then
+        echo "Please check your internet connection"
+        return
+    fi
+
+    local tmpfilename new_version new_version_string
+    tmpfilename=ksau-$RANDOM
+
+    echo "Fetching"
+    curl --progress-bar -Lo "$tmpfilename" https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau
+
+    new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | head -n1 | cut -d= -f2)
+    new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | head -n1 | cut -d= -f2)
+    if [[ $new_version -gt $KSAU_VERSION ]]; then
+        echo "New version found $Cyan($KSAU_VERSION_STRING -> $new_version_string)$Normal"
+        _update_copy "$tmpfilename"
+    else
+        echo "Already on latest release."
+    fi
+
+    rm -f "$tmpfilename"
+}
+
+version() {
+    echo "${orange}${KSAU_VERSION_STRING} ${normal}"
 }
 
 if [[ $1 == "upload" ]]; then
@@ -301,4 +330,3 @@ else
     echo "Unknown Argument passed."
     help
 fi
-
