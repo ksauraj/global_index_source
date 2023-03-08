@@ -11,7 +11,7 @@ aqua=$(echo -en "\e[36m")
 lightgreen=$(echo -en "\e[92m")
 Normal='\033[0m'
 Black='\033[0;30m'  # Black
-Red='\033[0;31m'    # Red
+Red=$'\033[0;31m'   # Red
 Green='\033[0;32m'  # Green
 Yellow='\033[0;33m' # Yellow
 Blue='\033[0;34m'   # Blue
@@ -205,6 +205,9 @@ function url_encode() {
 
 # rclone_progress_bar -> progress_bar -> Print dowload link.
 upload() {
+    if [[ $KSAUOPT_ADD_RAND_STR == true ]]; then
+        add_random_string "$(basename "$file")"
+    fi
     echo "Initializing process, might take up to 10 seconds..."
     rclone_progress_bar
     wait
@@ -221,12 +224,17 @@ upload() {
 
 help() {
     echo "
-${aqua}Usage : ksau [OPTION]... [FILE]...${normal}
+${aqua}Usage : ksau [-r] [OPTION]... [FILE]...${normal}
+
+${aqua}Options:${normal}
+    -r    Add random string to the end of filename when uploading
+
+    Note that all options must be passed ${Red}BEFORE${normal} other arguments.
 
 ${aqua}upload [FILE] [FOLDER]${normal}    : Uploads the given file to the given folder
                             on index.
 
-${aqua}upload -r [FILE] [FOLDER]${normal} : Uploads the given file to the given folder
+${aqua}upload [FILE] [FOLDER]${normal}    : Uploads the given file to the given folder
                             but with new filename with random strings
                             at last (before extension if present).
 
@@ -287,18 +295,27 @@ version() {
     echo "${orange}${KSAU_VERSION_STRING} ${normal}"
 }
 
+KSAUOPT_ADD_RAND_STR=false
+
+while getopts "r" opt; do
+    case $opt in
+    r)
+        KSAUOPT_ADD_RAND_STR=true
+        ;;
+    ?)
+        # Getopts already print error for us so just exit
+        exit 1
+        ;;
+    esac
+done
+
+# Remove all args parsed by getopts
+shift $((OPTIND - 1))
+
 if [[ $1 == "upload" ]]; then
-    if [[ $2 == "-r" ]]; then
-        shift
-        readonly file="$2"
-        readonly u_folder="$3"
-        add_random_string $(basename "$file")
-        upload
-    else
-        readonly file="$2"
-        readonly u_folder="$3"
-        upload
-    fi
+    readonly file="$2"
+    readonly u_folder="$3"
+    upload
 elif [[ $1 == "setup" ]]; then
     setup
 elif [[ $1 == "dependencies" ]]; then
