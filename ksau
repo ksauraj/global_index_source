@@ -169,7 +169,7 @@ $(upline 5)"
 # Below function is copied from - https://gist.github.com/jaytaylor/5a90c49e0976aadfe0726a847ce58736
 # Credit to @jkishner for https://gist.github.com/jkishner/2fccb24640a27c2d7ac9
 function url_encode() {
-    echo "$@" |
+    builtin echo "$@" |
         sed \
             -e 's/%/%25/g' \
             -e 's/ /%20/g' \
@@ -220,6 +220,10 @@ upload() {
     echo -e "\n$(clearline)$(upline 1)$(clearline)$(upline 1)"
     echo "$(clearline) Upload Completed "
     echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+
+    if [[ $KSAUOPT_QUIET == true ]]; then
+        builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
+    fi
 }
 
 help() {
@@ -228,6 +232,7 @@ ${aqua}Usage : ksau [-r] [OPTION]... [FILE]...${normal}
 
 ${aqua}Options:${normal}
     -r    Add random string to the end of filename when uploading
+    -q    Suppress all output, printing only the link after upload is finished
 
     Note that all options must be passed ${Red}BEFORE${normal} other arguments.
 
@@ -296,11 +301,17 @@ version() {
 }
 
 KSAUOPT_ADD_RAND_STR=false
+KSAUOPT_QUIET=false
 
-while getopts "r" opt; do
+while getopts "rq" opt; do
     case $opt in
     r)
         KSAUOPT_ADD_RAND_STR=true
+        ;;
+    q)
+        KSAUOPT_QUIET=true
+        # Override all echo call.
+        echo() { true; }
         ;;
     ?)
         # Getopts already print error for us so just exit
