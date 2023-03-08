@@ -11,7 +11,7 @@ aqua=$(echo -en "\e[36m")
 lightgreen=$(echo -en "\e[92m")
 Normal='\033[0m'
 Black='\033[0;30m'  # Black
-Red='\033[0;31m'    # Red
+Red=$'\033[0;31m'   # Red
 Green='\033[0;32m'  # Green
 Yellow='\033[0;33m' # Yellow
 Blue='\033[0;34m'   # Blue
@@ -19,10 +19,23 @@ Purple='\033[0;35m' # Purple
 Cyan='\033[0;36m'   # Cyan
 White='\033[0;37m'  # White
 
+UPLINE=$(tput cuu1)
+CLEARLINE=$(tput el)
+
 set -o pipefail
 readonly status_dir="$(mktemp -d)"
 
 trap "rm -rf $status_dir" EXIT
+
+upline() {
+    for _ in $(seq $1); do
+        echo -ne "$UPLINE"
+    done
+}
+
+clearline() {
+    echo -ne "$CLEARLINE"
+}
 
 dependencies() {
     if declare -p TERMUX_VERSION &>/dev/null; then
@@ -100,41 +113,35 @@ add_random_string() {
 # Simple progressbar animation.
 # Usage : progress_bar ${percentage} ${upload_speed} $(eta) ${status}
 progress_bar() {
-    if [ "$(tput cols)" -lt 84 ]; then
-        [ -z $1 ] && set -- "(Starting)" "..." "..." "..."
-        echo "${Green}${1}%  UPS: ${Cyan}2  ${Yellow}ETA: ${3}  STATUS: ${Cyan}${4}${Normal}"
-        return
-    fi
-
     if [[ ${1} < 10 ]]; then
-        echo "${Yellow}Progress ${Green}[=>---------${Cyan}${1}%${Normal}${Green}---------<=]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[=>---------${Cyan}${1}%${Normal}${Green}---------<=]"
     elif [[ ${1} -lt 20 ]]; then
-        echo "${Yellow}Progress ${Green}[==>--------${Cyan}${1}%${Normal}${Green}--------<==]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[==>--------${Cyan}${1}%${Normal}${Green}--------<==]"
     elif [[ ${1} -lt 30 ]]; then
-        echo "${Yellow}Progress ${Green}[===>-------${Cyan}${1}%${Normal}${Green}-------<===]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[===>-------${Cyan}${1}%${Normal}${Green}-------<===]"
     elif [[ ${1} -lt 40 ]]; then
-        echo "${Yellow}Progress ${Green}[====>------${Cyan}${1}%${Normal}${Green}------<====]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[====>------${Cyan}${1}%${Normal}${Green}------<====]"
     elif [[ ${1} -lt 50 ]]; then
-        echo "${Yellow}Progress ${Green}[=====>-----${Cyan}${1}%${Normal}${Green}-----<=====]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[=====>-----${Cyan}${1}%${Normal}${Green}-----<=====]"
     elif [[ ${1} -lt 60 ]]; then
-        echo "${Yellow}Progress ${Green}[======>----${Cyan}${1}%${Normal}${Green}----<======]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[======>----${Cyan}${1}%${Normal}${Green}----<======]"
     elif [[ ${1} -lt 70 ]]; then
-        echo "${Yellow}Progress ${Green}[=======>---${Cyan}${1}%${Normal}${Green}---<=======]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[=======>---${Cyan}${1}%${Normal}${Green}---<=======]"
     elif [[ ${1} -lt 80 ]]; then
-        echo "${Yellow}Progress ${Green}[========>--${Cyan}${1}%${Normal}${Green}--<========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[========>--${Cyan}${1}%${Normal}${Green}--<========]"
     elif [[ ${1} -lt 90 ]]; then
-        echo "${Yellow}Progress ${Green}[=========>-${Cyan}${1}%${Normal}${Green}-<=========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[=========>-${Cyan}${1}%${Normal}${Green}-<=========]"
     elif [[ ${1} -lt 100 ]]; then
-        echo "${Yellow}Progress ${Green}[==========>${Cyan}${1}%${Normal}${Green}<==========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[==========>${Cyan}${1}%${Normal}${Green}<==========]"
     elif [[ ${1} == 100 ]]; then
-        echo "${Yellow}Progress ${Green}[===========${Cyan}${1}%${Normal}${Green}===========]  ${Yellow}UPS: ${Cyan}${2}  ${Yellow}ETA: ${Cyan}${3} ${Yellow}STATUS: ${Cyan}${4}${Normal}"
+        echo "${Yellow}Progress ${Green}[===========${Cyan}${1}%${Normal}${Green}===========]"
     fi
 }
 
 # Upload file to give folder and use new filename if -r argument was passed and printing out new animation.
 rclone_progress_bar() {
     tput civis
-    echo "Starting download..."
+    echo "Starting upload..."
     rm -f log
     touch log
     if [ -z "$new_filename" ]; then new_filename=$(basename "$file"); fi
@@ -145,49 +152,24 @@ rclone_progress_bar() {
             echo "${Red}Upload failed!${Normal}"
             break
         fi
-        show_bar=$(progress_bar $(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1) $(grep 'ETA' log | tail -n1 | cut -d ',' -f5) $(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //') $(grep 'ETA' log | tail -n1 | cut -d ',' -f3 | sed 's/^.*   //'))
-        echo -ne "\r$show_bar"
-        sleep 0.1
+        local percent=$(grep -Eo '[0-9]{1,3}'% log | tail -n1 | cut -d '%' -f 1)
+        local ups=$(grep 'ETA' log | tail -n1 | cut -d ',' -f5)
+        local eta=$(grep 'ETA' log | tail -n1 | cut -d ',' -f6 | sed 's/ETA //')
+        local status=$(grep 'ETA' log | tail -n1 | cut -d ',' -f3 | sed 's/^.*   //')
+        progbar=$(progress_bar "$percent")
+        echo -e "$(clearline)$progbar
+    $(clearline)${Yellow}   UPS:${Normal} $ups
+    $(clearline)${Yellow}   ETA:${Normal} $eta
+    $(clearline)${Yellow}STATUS:${Normal} $status
+$(upline 5)"
     done #|| echo -ne "\rDownload Can't be completed, Check download link." && tput cnorm && exit 1
-    tput cnorm
-}
-
-# Final part of animation if upload was succesfull.
-end_animation() {
-    tput civis
-
-    dls=$(grep 'CN' log | tail -n1 | cut -d ' ' -f 4 | sed 's/DL://')
-    echo -ne "\r${Yellow}Progress ${Green}[======->${Cyan}Completed${Green}<-=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======/>${Cyan}COmpleted${Green}<\=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======|>${Cyan}COMpleted${Green}<|=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======\>${Cyan}COMPleted${Green}</=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======->${Cyan}COMPLeted${Green}<-=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======/>${Cyan}COMPLEted${Green}<\=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======|>${Cyan}COMPLETed${Green}<|=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======\>${Cyan}COMPLETEd${Green}</=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======->${Cyan}COMPLETED${Green}<-=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======/>${Cyan}COMPLETED${Green}<\=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo -ne "\r${Yellow}Progress ${Green}[======|>${Cyan}COMPLETED${Green}<|=====]  ${Yellow}UPS : ${dls}${Normal}"
-    sleep 0.2
-    echo
-
     tput cnorm
 }
 
 # Below function is copied from - https://gist.github.com/jaytaylor/5a90c49e0976aadfe0726a847ce58736
 # Credit to @jkishner for https://gist.github.com/jkishner/2fccb24640a27c2d7ac9
 function url_encode() {
-    echo "$@" |
+    builtin echo "$@" |
         sed \
             -e 's/%/%25/g' \
             -e 's/ /%20/g' \
@@ -221,8 +203,11 @@ function url_encode() {
             -e 's/~/%7e/g'
 }
 
-# rclone_progress_bar -> progress_bar -> end_animation -> Print dowload link.
+# rclone_progress_bar -> progress_bar -> Print dowload link.
 upload() {
+    if [[ $KSAUOPT_ADD_RAND_STR == true ]]; then
+        add_random_string "$(basename "$file")"
+    fi
     echo "Initializing process, might take up to 10 seconds..."
     rclone_progress_bar
     wait
@@ -230,21 +215,31 @@ upload() {
         echo -e "\rUpload Failed .......\n"
         exit 1
     fi
-    end_animation
     url_file=$(url_encode "${new_filename}")
     url_folder=$(jq -rn --arg x "${u_folder%/}" '$x|@uri')
-    echo " Upload Completed "
-    echo " Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+    echo -e "\n$(clearline)$(upline 1)$(clearline)$(upline 1)"
+    echo "$(clearline) Upload Completed "
+    echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+
+    if [[ $KSAUOPT_QUIET == true ]]; then
+        builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
+    fi
 }
 
 help() {
     echo "
-${aqua}Usage : ksau [OPTION]... [FILE]...${normal}
+${aqua}Usage : ksau [-r] [OPTION]... [FILE]...${normal}
+
+${aqua}Options:${normal}
+    -r    Add random string to the end of filename when uploading
+    -q    Suppress all output, printing only the link after upload is finished
+
+    Note that all options must be passed ${Red}BEFORE${normal} other arguments.
 
 ${aqua}upload [FILE] [FOLDER]${normal}    : Uploads the given file to the given folder
                             on index.
 
-${aqua}upload -r [FILE] [FOLDER]${normal} : Uploads the given file to the given folder
+${aqua}upload [FILE] [FOLDER]${normal}    : Uploads the given file to the given folder
                             but with new filename with random strings
                             at last (before extension if present).
 
@@ -305,18 +300,33 @@ version() {
     echo "${orange}${KSAU_VERSION_STRING} ${normal}"
 }
 
+KSAUOPT_ADD_RAND_STR=false
+KSAUOPT_QUIET=false
+
+while getopts "rq" opt; do
+    case $opt in
+    r)
+        KSAUOPT_ADD_RAND_STR=true
+        ;;
+    q)
+        KSAUOPT_QUIET=true
+        # Override all echo call.
+        echo() { true; }
+        ;;
+    ?)
+        # Getopts already print error for us so just exit
+        exit 1
+        ;;
+    esac
+done
+
+# Remove all args parsed by getopts
+shift $((OPTIND - 1))
+
 if [[ $1 == "upload" ]]; then
-    if [[ $2 == "-r" ]]; then
-        shift
-        readonly file="$2"
-        readonly u_folder="$3"
-        add_random_string $(basename "$file")
-        upload
-    else
-        readonly file="$2"
-        readonly u_folder="$3"
-        upload
-    fi
+    readonly file="$2"
+    readonly u_folder="$3"
+    upload
 elif [[ $1 == "setup" ]]; then
     setup
 elif [[ $1 == "dependencies" ]]; then
