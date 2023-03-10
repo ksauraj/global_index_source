@@ -256,7 +256,7 @@ ${aqua}version${normal}                   : To get version info.
 
 Example : ${lightgreen}ksau upload test.txt Public
 
-${orange}Tool By Sauraj (@Ksauraj)${normal}
+${orange}Tool By Sauraj (@Ksauraj) and @Hakimi0804${normal}
 "
 }
 
