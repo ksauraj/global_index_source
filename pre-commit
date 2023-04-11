@@ -2,4 +2,7 @@
 
 echo "Running make lint"
 make lint
-exit $?
+
+for file in $(git diff --cached --name-only); do
+    test -f "$file" && git add "$file"
+done
