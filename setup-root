@@ -8,7 +8,7 @@ lightgreen=$(echo -en "\e[92m")
 
 rm ksau >/dev/null 2>&1
 rm /usr/local/bin/ksau >/dev/null 2>&1
-curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau >ksau 2>/dev/null
+curl https://raw.githubusercontent.com/ksauraj/global_index_source/master/ksau >ksau 2>/dev/null
 mv ksau /usr/local/bin
 chmod +x /usr/local/bin/ksau
 

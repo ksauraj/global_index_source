@@ -9,16 +9,16 @@ Might be alternative to `bash-upload`, `we-transfer`, `transfer.sh`.
 ## How to get started 
 ### For Linux/macOS/BSD systems.
 ```
-curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/setup | bash
+curl -s https://raw.githubusercontent.com/ksauraj/global_index_source/master/setup | bash
 ```
 ### For Linux/macOS/BSD systems (ROOT USER).
 ```
-curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/setup-root | bash
+curl -s https://raw.githubusercontent.com/ksauraj/global_index_source/master/setup-root | bash
 ```
 
 ### For Termux user.
 ```
-curl -s https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/setup | bash
+curl -s https://raw.githubusercontent.com/ksauraj/global_index_source/master/setup | bash
 ```
 ### Once tool is installed, run setup.
 ```
@@ -116,4 +116,4 @@ Also I'm sharing my configs just for community use and I get nothing from it.
 ### Create Your Own
 Just change your `rclone config` and `index link` in `ksau`.
 
-### Tool By @Ksauraj (@noobyysauraj) and @Hakimi0804
+### Tool By @Ksauraj (@ksauraj) and @Hakimi0804

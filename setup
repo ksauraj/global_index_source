@@ -17,7 +17,7 @@ fi
 
 rm ksau >/dev/null 2>&1
 $SUDO rm $INSTALLDIR >/dev/null 2>&1
-curl https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau >ksau 2>/dev/null
+curl https://raw.githubusercontent.com/ksauraj/global_index_source/master/ksau >ksau 2>/dev/null
 $SUDO mv ksau $INSTALLDIR
 chmod +x $INSTALLDIR
 

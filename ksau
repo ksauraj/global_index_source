@@ -72,7 +72,7 @@ setup() {
         echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
         exit
     fi
-    wget https://gist.githubusercontent.com/noobyysauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf >/dev/null 2>&1
+    wget https://gist.githubusercontent.com/ksauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf >/dev/null 2>&1
     mv rclone.conf ~/.config/rclone
     if ! command -v rclone &>/dev/null; then
         echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
@@ -282,7 +282,7 @@ update() {
     tmpfilename=ksau-$RANDOM
 
     echo "Fetching"
-    curl --progress-bar -Lo "$tmpfilename" https://raw.githubusercontent.com/noobyysauraj/global_index_source/master/ksau
+    curl --progress-bar -Lo "$tmpfilename" https://raw.githubusercontent.com/ksauraj/global_index_source/master/ksau
 
     new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | head -n1 | cut -d= -f2)
     new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | head -n1 | cut -d= -f2)
