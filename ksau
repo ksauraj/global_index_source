@@ -220,6 +220,7 @@ upload() {
     echo -e "\n$(clearline)$(upline 1)$(clearline)$(upline 1)"
     echo "$(clearline) Upload Completed "
     echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+    echo "$(clearline)"
 
     if [[ $KSAUOPT_QUIET == true ]]; then
         builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
