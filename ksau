@@ -72,7 +72,7 @@ setup() {
         echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
         exit
     fi
-    wget https://gist.githubusercontent.com/ksauraj/cf531848e0d849296406d38a98b2a544/raw/rclone.conf >/dev/null 2>&1
+    wget https://gist.githubusercontent.com/Hakimi0804/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/7744c11fb8724a5c91a532d4ef93746da5f8ae7c/rclone.conf >/dev/null 2>&1
     mv rclone.conf ~/.config/rclone
     if ! command -v rclone &>/dev/null; then
         echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
@@ -145,7 +145,11 @@ rclone_progress_bar() {
     rm -f log
     touch log
     if [ -z "$new_filename" ]; then new_filename=$(basename "$file"); fi
-    rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" oned:/"${u_folder}"/"$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+    if [ "$KSAUOPT_ALT_REMOTE" = true ]; then
+        rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "hakimionedrive:/Public/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+    else
+        rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "oned:/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+    fi
     until [ -z "$(jobs -r)" ]; do
         if [ -f "$status_dir/failed" ]; then
             echo
@@ -219,37 +223,46 @@ upload() {
     url_folder=$(jq -rn --arg x "${u_folder%/}" '$x|@uri')
     echo -e "\n$(clearline)$(upline 1)$(clearline)$(upline 1)"
     echo "$(clearline) Upload Completed "
-    echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+    if [ "$KSAUOPT_ALT_REMOTE" = true ]; then
+        echo "$(clearline) Download link - ${lightgreen}https://onedrive-vercel-index-kohl-eight-30.vercel.app/${url_folder}/${url_file}${normal} "
+    else
+        echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+    fi
     echo "$(clearline)"
 
     if [[ $KSAUOPT_QUIET == true ]]; then
-        builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
+        if [ "$KSAUOPT_ALT_REMOTE" = true ]; then
+            builtin echo "https://onedrive-vercel-index-kohl-eight-30.vercel.app/${url_folder}/${url_file}"
+        else
+            builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
+        fi
     fi
 }
 
 help() {
     echo "
-${aqua}Usage : ksau [-r] [OPTION]... [FILE]...${normal}
+${aqua}Usage : ksau [-r] [OPTION] [FILE]${normal}
 
 ${aqua}Options:${normal}
--r    Add random string to the end of filename (but before extension) when uploading
+    -r    Add random string to the end of filename (but before extension) when uploading
     -q    Suppress all output, printing only the link after upload is finished
+    -a    Use alternate remote (Hakimi's OneDrive)
 
     Note that all options must be passed ${Red}BEFORE${normal} other arguments.
 
 ${aqua}upload [-r] [FILE] [FOLDER]${normal}: Uploads the given file to the given folder
                             on index.
 
-${aqua}setup${normal}                     : Recquired while using first time.
+${aqua}setup${normal}                     : Required while using first time.
 
-${aqua}update${normal}                    : Fetch and install latest version
+${aqua}update${normal}                    : Fetch and install latest version.
                             available.
 
-${aqua}dependencies${normal}              : Installs recquired dependencies.
+${aqua}dependencies${normal}              : Install required dependencies.
 
-${aqua}help${normal}                      : To get this message.
+${aqua}help${normal}                      : Show this message.
 
-${aqua}version${normal}                   : To get version info.
+${aqua}version${normal}                   : Show ksau version.
 
 Example : ${lightgreen}ksau upload test.txt Public
 
@@ -299,8 +312,9 @@ version() {
 
 KSAUOPT_ADD_RAND_STR=false
 KSAUOPT_QUIET=false
+KSAUOPT_ALT_REMOTE=false
 
-while getopts "rq" opt; do
+while getopts "rqa" opt; do
     case $opt in
     r)
         KSAUOPT_ADD_RAND_STR=true
@@ -309,6 +323,10 @@ while getopts "rq" opt; do
         KSAUOPT_QUIET=true
         # Override all echo call.
         echo() { true; }
+        ;;
+    a)
+        KSAUOPT_ALT_REMOTE=true
+        echo "Note: Using Hakimi's OneDrive."
         ;;
     ?)
         # Getopts already print error for us so just exit
