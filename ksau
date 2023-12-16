@@ -241,7 +241,7 @@ upload() {
 
 help() {
     echo "
-${aqua}Usage : ksau [-r] [OPTION]... [FILE]...${normal}
+${aqua}Usage : ksau [-r] [OPTION] [FILE]${normal}
 
 ${aqua}Options:${normal}
     -r    Add random string to the end of filename (but before extension) when uploading
@@ -253,16 +253,16 @@ ${aqua}Options:${normal}
 ${aqua}upload [-r] [FILE] [FOLDER]${normal}: Uploads the given file to the given folder
                             on index.
 
-${aqua}setup${normal}                     : Recquired while using first time.
+${aqua}setup${normal}                     : Required while using first time.
 
-${aqua}update${normal}                    : Fetch and install latest version
+${aqua}update${normal}                    : Fetch and install latest version.
                             available.
 
-${aqua}dependencies${normal}              : Installs recquired dependencies.
+${aqua}dependencies${normal}              : Install required dependencies.
 
-${aqua}help${normal}                      : To get this message.
+${aqua}help${normal}                      : Show this message.
 
-${aqua}version${normal}                   : To get version info.
+${aqua}version${normal}                   : Show ksau version.
 
 Example : ${lightgreen}ksau upload test.txt Public
 
