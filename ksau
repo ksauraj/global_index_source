@@ -1,8 +1,8 @@
 #!/bin/bash
 
-readonly KSAU_VERSION=252
+readonly KSAU_VERSION=260
 readonly KSAU_RELEASE_TYPE=stable
-readonly KSAU_VERSION_STRING="Version 2.5.2 (Stable)"
+readonly KSAU_VERSION_STRING="Version 2.6.0 (Stable)"
 
 #Define colors
 normal=$(echo -en "\e[0m")
