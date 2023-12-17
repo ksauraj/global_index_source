@@ -124,6 +124,7 @@ add_random_string() {
 # Select remote randomly.
 select_remote_random() {
     SELECTED_REMOTE=$(printf "%s\n" "${REMOTES[@]}" | shuf -n1)
+    echo "Using randomly selected remote: $SELECTED_REMOTE"
 }
 
 # Select remote with most free space
@@ -156,7 +157,7 @@ select_remote_most_free_cached() {
         select_remote_most_free
     else
         SELECTED_REMOTE=$(cat "$KSAU_CACHE_DIR/most_free_remote")
-        echo "Using cached remote: $SELECTED_REMOTE"
+        echo "Using cached remote with most free space: $SELECTED_REMOTE"
     fi
 }
 
@@ -195,11 +196,17 @@ rclone_progress_bar() {
     rm -f log
     touch log
     if [ -z "$new_filename" ]; then new_filename=$(basename "$file"); fi
-    if [ "$KSAUOPT_ALT_REMOTE" = true ]; then
-        rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "hakimionedrive:/Public/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
-    else
-        rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "oned:/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
-    fi
+    case $SELECTED_REMOTE in
+        hakimionedrive)
+            rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "hakimionedrive:/Public/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+            ;;
+        oned)
+            rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "oned:/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+            ;;
+        saurajcf)
+            rclone -P --checkers=32 --onedrive-chunk-size 60M copyto "$file" "saurajcf:/MY_BOMT_STUFFS/${u_folder}/$new_filename" | tee log >/dev/null || touch "$status_dir/failed" &
+            ;;
+    esac
     until [ -z "$(jobs -r)" ]; do
         if [ -f "$status_dir/failed" ]; then
             echo
@@ -273,19 +280,32 @@ upload() {
     url_folder=$(jq -rn --arg x "${u_folder%/}" '$x|@uri')
     echo -e "\n$(clearline)$(upline 1)$(clearline)$(upline 1)"
     echo "$(clearline) Upload Completed "
-    if [ "$KSAUOPT_ALT_REMOTE" = true ]; then
-        echo "$(clearline) Download link - ${lightgreen}https://onedrive-vercel-index-kohl-eight-30.vercel.app/${url_folder}/${url_file}${normal} "
-    else
-        echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
-    fi
+    case $SELECTED_REMOTE in
+        hakimionedrive)
+            echo "$(clearline) Download link - ${lightgreen}https://onedrive-vercel-index-kohl-eight-30.vercel.app/${url_folder}/${url_file}${normal} "
+            ;;
+        oned)
+            echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
+            ;;
+        saurajcf)
+            echo "$(clearline) Download link - ${lightgreen}https://drive.sauraj.cf/${url_folder}/${url_file}${normal} "
+            ;;
+    esac
     echo "$(clearline)"
 
     if [[ $KSAUOPT_QUIET == true ]]; then
-        if [ "$KSAUOPT_ALT_REMOTE" = true ]; then
-            builtin echo "https://onedrive-vercel-index-kohl-eight-30.vercel.app/${url_folder}/${url_file}"
-        else
-            builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
-        fi
+        case $SELECTED_REMOTE in
+            hakimionedrive)
+                builtin echo "https://onedrive-vercel-index-kohl-eight-30.vercel.app/${url_folder}/${url_file}"
+                ;;
+            oned)
+                builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
+                ;;
+            saurajcf)
+                builtin echo "https://drive.sauraj.cf/${url_folder}/${url_file}"
+                ;;
+        esac
+        
     fi
 }
 
@@ -313,7 +333,10 @@ ${aqua}help${normal}                      : Show this message.
 
 ${aqua}version${normal}                   : Show ksau version.
 
-Example : ${lightgreen}ksau upload test.txt Public
+Example: ${lightgreen}ksau upload test.txt Public
+Note: Each time ksau is run, even if not for uploading, it will attempt to refresh
+      the remote with most free space cache. This might cause a few seconds delay,
+      depending on the internet connection.
 
 ${orange}Tool By Sauraj (@Ksauraj)${normal}
 "
@@ -387,9 +410,17 @@ done
 # Remove all args parsed by getopts
 shift $((OPTIND - 1))
 
+# Call this because even if user's not uploading, we want to
+# refresh the cache either way if its older than set timeout
+select_remote_most_free_cached
+
 if [[ $1 == "upload" ]]; then
     readonly file="$2"
     readonly u_folder="$3"
+    if [ "$(stat -c '%s' "$file")" -lt 104857600 ]; then # -lt 100MiB
+        echo "File size is <100MiB, selecting random remote"
+        select_remote_random # override most free cached
+    fi
     upload
 elif [[ $1 == "setup" ]]; then
     setup
