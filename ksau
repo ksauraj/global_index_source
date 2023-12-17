@@ -410,6 +410,10 @@ done
 # Remove all args parsed by getopts
 shift $((OPTIND - 1))
 
+if [[ $1 == "setup" ]]; then
+  setup
+fi
+
 # Call this because even if user's not uploading, we want to
 # refresh the cache either way if its older than set timeout
 select_remote_most_free_cached
@@ -422,8 +426,6 @@ if [[ $1 == "upload" ]]; then
         select_remote_random # override most free cached
     fi
     upload
-elif [[ $1 == "setup" ]]; then
-    setup
 elif [[ $1 == "dependencies" ]]; then
     dependencies
 elif [[ $1 == "update" ]]; then
