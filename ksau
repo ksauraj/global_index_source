@@ -25,7 +25,7 @@ Black='\033[0;30m'  # Black
 Red=$'\033[0;31m'   # Red
 Green='\033[0;32m'  # Green
 Yellow='\033[0;33m' # Yellow
-Blue='\033[0;34m'   # Blue
+Blue=$'\033[0;34m'   # Blue
 Purple='\033[0;35m' # Purple
 Cyan='\033[0;36m'   # Cyan
 White='\033[0;37m'  # White
@@ -316,11 +316,14 @@ ${aqua}Usage : ksau [-r] [OPTION] [FILE]${normal}
 ${aqua}Options:${normal}
     -r    Add random string to the end of filename (but before extension) when uploading
     -q    Suppress all output, printing only the link after upload is finished
+    -c    Upload to a specific remote
 
     Note that all options must be passed ${Red}BEFORE${normal} other arguments.
 
 ${aqua}upload [-r] [FILE] [FOLDER]${normal}: Uploads the given file to the given folder
                             on index.
+
+${aqua}list${normal}                      : List available remotes.
 
 ${aqua}setup${normal}                     : Required while using first time.
 
@@ -333,8 +336,8 @@ ${aqua}help${normal}                      : Show this message.
 
 ${aqua}version${normal}                   : Show ksau version.
 
-Example: ${lightgreen}ksau upload test.txt Public
-Note: Each time ksau is run, even if not for uploading, it will attempt to refresh
+Example: ${lightgreen}ksau upload test.txt Public${normal}
+${Blue}Note:${normal} Each time ksau is run, even if not for uploading, it will attempt to refresh
       the remote with most free space cache. This might cause a few seconds delay,
       depending on the internet connection.
 
@@ -384,9 +387,9 @@ version() {
 
 KSAUOPT_ADD_RAND_STR=false
 KSAUOPT_QUIET=false
-KSAUOPT_ALT_REMOTE=false
+KSAUOPT_SPECIFIC_REMOTE=
 
-while getopts "rqa" opt; do
+while getopts "rqc:" opt; do
     case $opt in
     r)
         KSAUOPT_ADD_RAND_STR=true
@@ -396,9 +399,12 @@ while getopts "rqa" opt; do
         # Override all echo call.
         echo() { true; }
         ;;
-    a)
-        KSAUOPT_ALT_REMOTE=true
-        echo "Note: Using Hakimi's OneDrive."
+    c)
+        if printf '%s\0' "${REMOTES[@]}" | grep -Fxqz -- "$OPTARG"; then
+            KSAUOPT_SPECIFIC_REMOTE=$OPTARG
+        else
+            echo "${Red}Such remote does not exist. Please view available remotes with ksau list.${normal}"
+        fi
         ;;
     ?)
         # Getopts already print error for us so just exit
@@ -411,7 +417,7 @@ done
 shift $((OPTIND - 1))
 
 if [[ $1 == "setup" ]]; then
-  setup
+    setup
 fi
 
 # Call this because even if user's not uploading, we want to
@@ -421,7 +427,12 @@ select_remote_most_free_cached
 if [[ $1 == "upload" ]]; then
     readonly file="$2"
     readonly u_folder="$3"
-    if [ "$(stat -c '%s' "$file")" -lt 104857600 ]; then # -lt 100MiB
+    if [ -n "$KSAUOPT_SPECIFIC_REMOTE" ]; then
+        SELECTED_REMOTE=$KSAUOPT_SPECIFIC_REMOTE
+        upline 1; clearline
+        echo "Using requested remote: $SELECTED_REMOTE"
+    elif [ "$(stat -c '%s' "$file")" -lt 104857600 ]; then # -lt 100MiB
+        upline 1; clearline
         echo "File size is <100MiB, selecting random remote"
         select_remote_random # override most free cached
     fi
@@ -432,6 +443,8 @@ elif [[ $1 == "update" ]]; then
     update
 elif [[ $1 == "version" ]]; then
     version
+elif [[ $1 == "list" ]]; then
+    printf 'Remote: %s\n' "${REMOTES[@]}"
 elif [[ $1 == "help" ]]; then
     help
 elif [[ $1 == "" ]]; then
