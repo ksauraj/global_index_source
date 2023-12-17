@@ -4,6 +4,17 @@ readonly KSAU_VERSION=151
 readonly KSAU_RELEASE_TYPE=stable
 readonly KSAU_VERSION_STRING="Version 1.5.1 (Stable)"
 
+readonly KSAU_CACHE_DIR=$HOME/.ksau
+readonly CACHED_FREESPACE_TIMEOUT=$((60*60)) # 60s * 60m = 1h in seconds unit
+mkdir -p "$KSAU_CACHE_DIR"
+
+readonly REMOTES=(
+    "oned"
+    "hakimionedrive"
+    "saurajcf"
+)
+SELECTED_REMOTE=oned # default
+
 #Define colors
 normal=$(echo -en "\e[0m")
 orange=$(echo -en "\e[33m")
@@ -107,6 +118,45 @@ add_random_string() {
         new_filename="$name-$random_string"
     else
         new_filename="$name-$random_string.$extension"
+    fi
+}
+
+# Select remote randomly.
+select_remote_random() {
+    SELECTED_REMOTE=$(printf "%s\n" "${REMOTES[@]}" | shuf -n1)
+}
+
+# Select remote with most free space
+# Will be used for larger files
+select_remote_most_free() {
+    echo "Checking free space for each remote..."
+    local remotes_free_space=()
+    for remote in "${REMOTES[@]}"; do
+        remotes_free_space+=("$(rclone about "$remote" | grep Free | cut -d: -f2 | tr -d '[:space:]')")
+    done
+
+    local curr_max_index=0
+    for fsi in "${!remotes_free_space[@]}"; do
+        if [ "${remotes_free_space[$fsi]}" -gt "${remotes_free_space[$curr_max_index]}" ]; then
+            curr_max_index=$fsi
+        fi
+    done
+
+    SELECTED_REMOTE="${REMOTES[$curr_max_index]}"
+
+    # Update cache
+    echo "$SELECTED_REMOTE" >"$KSAU_CACHE_DIR/most_free_remote"
+    date +%s >"$KSAU_CACHE_DIR/cached_freespace_update_time"
+}
+
+# Select remote with most free space from cached value
+select_remote_most_free_cached() {
+    if [ ! -f "$KSAU_CACHE_DIR/cached_freespace_update_time" ] ||
+    [ "$(( $(date +%s) - $(cat "$KSAU_CACHE_DIR/cached_freespace_update_time") ))" -ge "$CACHED_FREESPACE_TIMEOUT" ]; then
+        select_remote_most_free
+    else
+        SELECTED_REMOTE=$(cat "$KSAU_CACHE_DIR/most_free_remote")
+        echo "Using cached remote: $SELECTED_REMOTE"
     fi
 }
 
@@ -246,7 +296,6 @@ ${aqua}Usage : ksau [-r] [OPTION] [FILE]${normal}
 ${aqua}Options:${normal}
     -r    Add random string to the end of filename (but before extension) when uploading
     -q    Suppress all output, printing only the link after upload is finished
-    -a    Use alternate remote (Hakimi's OneDrive)
 
     Note that all options must be passed ${Red}BEFORE${normal} other arguments.
 
