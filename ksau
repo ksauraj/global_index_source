@@ -83,7 +83,7 @@ setup() {
         echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
         exit
     fi
-    wget https://gist.githubusercontent.com/Hakimi0804/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/7744c11fb8724a5c91a532d4ef93746da5f8ae7c/rclone.conf >/dev/null 2>&1
+    wget https://gist.githubusercontent.com/Hakimi0804/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/500a7a0098f72b2806b73a2b7f0c6d0b08d7fa2f/rclone.conf >/dev/null 2>&1
     mv rclone.conf ~/.config/rclone
     if ! command -v rclone &>/dev/null; then
         echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
@@ -132,7 +132,7 @@ select_remote_most_free() {
     echo "Checking free space for each remote..."
     local remotes_free_space=()
     for remote in "${REMOTES[@]}"; do
-        remotes_free_space+=("$(rclone about "$remote" | grep Free | cut -d: -f2 | tr -d '[:space:]')")
+        remotes_free_space+=("$(rclone about "$remote:" --full | grep Free | cut -d: -f2 | tr -d '[:space:]')")
     done
 
     local curr_max_index=0
