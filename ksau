@@ -133,7 +133,10 @@ select_remote_most_free() {
     echo "Checking free space for each remote..."
     local remotes_free_space=()
     for remote in "${REMOTES[@]}"; do
-        remotes_free_space+=("$(rclone about "$remote:" --full | grep Free | cut -d: -f2 | tr -d '[:space:]')")
+        if ! remotes_free_space+=("$(rclone about "$remote:" --full | grep Free | cut -d: -f2 | tr -d '[:space:]')"); then
+            echo "${Red}Error checking free space. Please run ksau setup and try again.${normal}"
+            exit 1
+        fi
     done
 
     local curr_max_index=0
