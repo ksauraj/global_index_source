@@ -191,7 +191,7 @@ progress_bar() {
 
 # Upload file to give folder and use new filename if -r argument was passed and printing out new animation.
 rclone_progress_bar() {
-    tput civis
+    [ "$KSAUOPT_QUIET" = false ] && tput civis
     echo "Starting upload..."
     rm -f log
     touch log
@@ -224,7 +224,7 @@ rclone_progress_bar() {
     $(clearline)${Yellow}STATUS:${Normal} $status
 $(upline 5)"
     done #|| echo -ne "\rDownload Can't be completed, Check download link." && tput cnorm && exit 1
-    tput cnorm
+    [ "$KSAUOPT_QUIET" = false ] && tput cnorm
 }
 
 # Below function is copied from - https://gist.github.com/jaytaylor/5a90c49e0976aadfe0726a847ce58736
