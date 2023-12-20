@@ -1,8 +1,8 @@
 #!/bin/bash
 
-readonly KSAU_VERSION=300
+readonly KSAU_VERSION=301
 readonly KSAU_RELEASE_TYPE=stable
-readonly KSAU_VERSION_STRING="Version 3.0.0 (Stable)"
+readonly KSAU_VERSION_STRING="Version 3.0.1 (Stable)"
 
 readonly KSAU_CACHE_DIR=$HOME/.ksau
 readonly CACHED_FREESPACE_TIMEOUT=$((60*60)) # 60s * 60m = 1h in seconds unit
