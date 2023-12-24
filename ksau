@@ -447,7 +447,10 @@ elif [[ $1 == "update" ]]; then
 elif [[ $1 == "version" ]]; then
     version
 elif [[ $1 == "list" ]]; then
-    printf 'Remote: %s\n' "${REMOTES[@]}"
+    for remote in "${REMOTES[@]}"; do
+        remote_about=$(rclone about ${remote}:)
+        printf '%sRemote: %s%s\n%s%s%s\n\n' "${orange}" "${remote}" "${normal}" "${aqua}" "${remote_about}" "${normal}"
+    done
 elif [[ $1 == "help" ]]; then
     help
 elif [[ $1 == "" ]]; then
