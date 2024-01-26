@@ -291,7 +291,7 @@ upload() {
             echo "$(clearline) Download link - ${lightgreen}https://index.sauraj.eu.org/${url_folder}/${url_file}${normal} "
             ;;
         saurajcf)
-            echo "$(clearline) Download link - ${lightgreen}https://drive.sauraj.cf/${url_folder}/${url_file}${normal} "
+            echo "$(clearline) Download link - ${lightgreen}https://my-index-azure.vercel.app/${url_folder}/${url_file}${normal} "
             ;;
     esac
     echo "$(clearline)"
@@ -305,7 +305,7 @@ upload() {
                 builtin echo "https://index.sauraj.eu.org/${url_folder}/${url_file}"
                 ;;
             saurajcf)
-                builtin echo "https://drive.sauraj.cf/${url_folder}/${url_file}"
+                builtin echo "https://my-index-azure.vercel.app/${url_folder}/${url_file}"
                 ;;
         esac
         
