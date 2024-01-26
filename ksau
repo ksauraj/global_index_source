@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly KSAU_VERSION=301
+readonly KSAU_VERSION=302
 readonly KSAU_RELEASE_TYPE=stable
 readonly KSAU_VERSION_STRING="Version 3.0.2 (Stable)"
 
