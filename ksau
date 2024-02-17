@@ -167,7 +167,7 @@ select_remote_most_free_cached() {
 # Simple progressbar animation.
 # Usage : progress_bar ${percentage} ${upload_speed} $(eta) ${status}
 progress_bar() {
-    if [[ ${1} < 10 ]]; then
+    if [[ ${1} -lt 10 ]]; then
         echo "${Yellow}Progress ${Green}[=>---------${Cyan}${1}%${Normal}${Green}---------<=]"
     elif [[ ${1} -lt 20 ]]; then
         echo "${Yellow}Progress ${Green}[==>--------${Cyan}${1}%${Normal}${Green}--------<==]"
