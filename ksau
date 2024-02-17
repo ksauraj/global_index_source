@@ -326,7 +326,7 @@ ${aqua}Options:${normal}
 ${aqua}upload [-r] [FILE] [FOLDER]${normal}: Uploads the given file to the given folder
                             on index.
 
-${aqua}list${normal}                      : List available remotes.
+${aqua}list${normal}                      : List available remotes and show their usage info.
 
 ${aqua}setup${normal}                     : Required while using first time.
 
