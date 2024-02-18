@@ -129,14 +129,17 @@ select_remote_random() {
 # Select remote with most free space
 # Will be used for larger files
 select_remote_most_free() {
-    echo "Checking free space for each remote..."
+    echo -en "Checking free space for each remote...\r"
     local remotes_free_space=()
     for remote in "${REMOTES[@]}"; do
+        echo -en "$(clearline)Checking free space for each remote -- remote: ${lightgreen}${remote}${normal}\r"
         if ! remotes_free_space+=("$(rclone about "$remote:" --full | grep Free | cut -d: -f2 | tr -d '[:space:]')"); then
             echo "${Red}Error checking free space. Please run ksau setup and try again.${normal}"
             exit 1
         fi
     done
+    clearline
+    upline 1
 
     local curr_max_index=0
     for fsi in "${!remotes_free_space[@]}"; do
@@ -290,7 +293,7 @@ upload() {
         echo "$(clearline) Download link - ${lightgreen}https://my-index-azure.vercel.app/${url_folder}/${url_file}${normal} "
         ;;
     esac
-    echo "$(clearline)"
+    clearline
 
     if [[ $KSAUOPT_QUIET == true ]]; then
         case $SELECTED_REMOTE in
@@ -369,6 +372,10 @@ update() {
 
     echo "Fetching"
     curl --progress-bar -Lo "$tmpfilename" https://raw.githubusercontent.com/ksauraj/global_index_source/master/ksau
+    upline 1
+    clearline
+    upline 1
+    clearline
 
     new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | head -n1 | cut -d= -f2)
     new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | head -n1 | cut -d= -f2)
