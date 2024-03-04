@@ -74,35 +74,24 @@ dependencies() {
     echo ''
 }
 
-setup() {
+sanity_checks() {
     mkdir -p ~/.config/rclone
-    rm ~/.config/rclone/rclone.conf >/dev/null 2>&1
-    if ! command -v wget &>/dev/null; then
-        echo "${aqua}Does this machine even have simple pkgs installed?"
-        echo "Please install ${orange}wget ${aqua}manually and continue...${normal}"
-        exit
+    if ! command -v wget &>/dev/null || ! command -v jq &>/dev/null || ! command -v rclone &>/dev/null; then
+        echo "${Red}Dependencies are not installed!${normal}"
+        echo "${aqua}Please install jq, wget and rclone.${normal}"
+        exit 1
     fi
-    wget https://gist.githubusercontent.com/Hakimi0804/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/500a7a0098f72b2806b73a2b7f0c6d0b08d7fa2f/rclone.conf >/dev/null 2>&1
-    mv rclone.conf ~/.config/rclone
-    if ! command -v rclone &>/dev/null; then
-        echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-        echo "${aqua}OR manually install ${orange}rclone ${aqua}and ${orange}jq${normal}"
-        exit
-    else
-        if ! command -v jq &>/dev/null; then
-            echo "${aqua}Dependencies not found. Make sure to proceed with the command 'ksau dependencies'"
-            echo "${aqua}Please install jq manually, No script found"
-            echo "Possibly with
-					${aqua}sudo apt-get install jq ${normal}OR
-					${aqua}sudo pacman -S jq ${normal}OR
-					${aqua}sudo dnf install jq ${normal}OR
-					${aqua}sudo zypper install jq ${normal}OR
-					${aqua}apk add jq ${normal}OR
-					${aqua}pkg install jq${normal}"
-            exit
-        fi
+}
+
+refresh() {
+    echo "${aqua}Downloading latest rclone config${normal}"
+    wget https://gist.githubusercontent.com/Hakimi0804/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/rclone.conf -O rclone.conf &>/dev/null
+    if [ "$?" -ne 0 ]; then
+        echo "Config download failed!"
+        return
     fi
-    echo "Setup Completed"
+    mv rclone.conf ~/.config/rclone/rclone.conf
+    echo "${lightgreen}rclone config updated successfully.${normal}"
 }
 
 # Generates new filename with random strings at last (before extension if present).
@@ -129,14 +118,17 @@ select_remote_random() {
 # Select remote with most free space
 # Will be used for larger files
 select_remote_most_free() {
-    echo "Checking free space for each remote..."
+    echo -en "Checking free space for each remote...\r"
     local remotes_free_space=()
     for remote in "${REMOTES[@]}"; do
+        echo -en "$(clearline)Checking free space for each remote -- remote: ${lightgreen}${remote}${normal}\r"
         if ! remotes_free_space+=("$(rclone about "$remote:" --full | grep Free | cut -d: -f2 | tr -d '[:space:]')"); then
-            echo "${Red}Error checking free space. Please run ksau setup and try again.${normal}"
+            echo "${Red}Error checking free space. Please run ksau refresh and try again.${normal}"
             exit 1
         fi
     done
+    clearline
+    upline 1
 
     local curr_max_index=0
     for fsi in "${!remotes_free_space[@]}"; do
@@ -290,7 +282,7 @@ upload() {
         echo "$(clearline) Download link - ${lightgreen}https://my-index-azure.vercel.app/${url_folder}/${url_file}${normal} "
         ;;
     esac
-    echo "$(clearline)"
+    clearline
 
     if [[ $KSAUOPT_QUIET == true ]]; then
         case $SELECTED_REMOTE in
@@ -324,7 +316,7 @@ ${aqua}upload [-r] [FILE] [FOLDER]${normal}: Uploads the given file to the given
 
 ${aqua}list${normal}                      : List available remotes and show their usage info.
 
-${aqua}setup${normal}                     : Required while using first time.
+${aqua}refresh${normal}                   : Refresh rclone config. Try this if upload does not work.
 
 ${aqua}update${normal}                    : Fetch and install latest version.
                             available.
@@ -369,6 +361,10 @@ update() {
 
     echo "Fetching"
     curl --progress-bar -Lo "$tmpfilename" https://raw.githubusercontent.com/ksauraj/global_index_source/master/ksau
+    upline 1
+    clearline
+    upline 1
+    clearline
 
     new_version=$(grep 'KSAU_VERSION=' "$tmpfilename" | head -n1 | cut -d= -f2)
     new_version_string=$(grep 'KSAU_VERSION_STRING=' "$tmpfilename" | head -n1 | cut -d= -f2)
@@ -417,8 +413,9 @@ done
 # Remove all args parsed by getopts
 shift $((OPTIND - 1))
 
-if [[ $1 == "setup" ]]; then
-    setup
+sanity_checks
+if [[ $1 == "refresh" ]]; then
+    refresh
 fi
 
 # Call this because even if user's not uploading, we want to
