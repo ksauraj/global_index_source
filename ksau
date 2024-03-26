@@ -123,8 +123,9 @@ select_remote_most_free() {
     for remote in "${REMOTES[@]}"; do
         echo -en "$(clearline)Checking free space for each remote -- remote: ${lightgreen}${remote}${normal}\r"
         if ! remotes_free_space+=("$(rclone about "$remote:" --full | grep Free | cut -d: -f2 | tr -d '[:space:]')"); then
-            echo "${Red}Error checking free space. Please run ksau refresh and try again.${normal}"
-            exit 1
+            echo "${Red}Error checking free space. Please run ksau refresh. Falling back to random remote.${normal}"
+            select_remote_random
+            return
         fi
     done
     clearline
