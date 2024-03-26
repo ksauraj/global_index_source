@@ -85,7 +85,7 @@ sanity_checks() {
 
 refresh() {
     echo "${aqua}Downloading latest rclone config${normal}"
-    wget https://gist.githubusercontent.com/Hakimi0804/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/rclone.conf -O rclone.conf &>/dev/null
+    wget https://gist.githubusercontent.com/hakimifr/aabebeea8c1ce0c5a6968fc0d78ed5ae/raw/rclone.conf -O rclone.conf &>/dev/null
     if [ "$?" -ne 0 ]; then
         echo "Config download failed!"
         return
@@ -332,7 +332,7 @@ ${Blue}Note:${normal} Each time ksau is run, even if not for uploading, it will 
       the remote with most free space cache. This might cause a few seconds delay,
       depending on the internet connection.
 
-${orange}Tool By Sauraj (@Ksauraj) and @Hakimi0804${normal}
+${orange}Tool By Sauraj (@Ksauraj) and @hakimifr${normal}
 ${orange}Join our Telegram channel for updates:${normal}
 ${aqua}  https://t.me/ksau_update${normal}
 "

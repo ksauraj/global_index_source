@@ -116,4 +116,4 @@ Also I'm sharing my configs just for community use and I get nothing from it.
 ### Create Your Own
 Just change your `rclone config` and `index link` in `ksau`.
 
-### Tool By @Ksauraj (@ksauraj) and @Hakimi0804
+### Tool By @Ksauraj (@ksauraj) and @hakimifr
